@@ -1,0 +1,10 @@
+prefix=/usr/local
+libdir=/usr/local/lib
+includedir=/usr/local/include/ns3.21
+
+Name: libns3-lte
+Description: ns-3 module ns3-lte
+Version: 3.21
+Libs: -L${libdir} -Wl,-Bdynamic -lns3.21-lte-debug
+Cflags: -I${includedir}
+Requires: libns3.21-core-debug libns3.21-network-debug libns3.21-spectrum-debug libns3.21-stats-debug libns3.21-buildings-debug libns3.21-virtual-net-device-debug libns3.21-point-to-point-debug libns3.21-applications-debug libns3.21-internet-debug libns3.21-csma-debug libns3.21-fd-net-device-debug
