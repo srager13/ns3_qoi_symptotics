@@ -24,11 +24,68 @@
 #include "ns3/ptr.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/traced-callback.h"
+#include "ns3/tag.h"
+#include "ns3/random-variable-stream.h"
+#include <vector>
+
+#define TOPK_QUERY_CLIENT_DEBUG 0
 
 namespace ns3 {
 
 class Socket;
 class Packet;
+
+struct TopkQuery 
+{
+  uint16_t id;
+  uint16_t num_images_rqstd;
+  uint16_t num_images_rcvd;
+  Time start_time;
+  Time deadline;
+};
+
+struct TopkQueryTag : public Tag
+{
+  int query_id, num_images_rqstd, image_num;
+
+  TopkQueryTag ( int new_query_id = -1, int new_num_images_rqstd = -1, int new_image_num = 0) : Tag(), query_id(new_query_id), num_images_rqstd(new_num_images_rqstd), image_num(new_image_num) {}
+
+  static TypeId GetTypeId()
+  {
+    static TypeId tid = TypeId("ns3::TopkQueryTag").SetParent<Tag>();
+    return tid;
+  }
+
+  TypeId GetInstanceTypeId() const
+  {
+    return GetTypeId();
+  }
+
+  uint32_t GetSerializedSize () const
+  {
+    return 3*sizeof(int);
+  }
+
+  void Serialize (TagBuffer i) const
+  {
+    i.WriteU32 (query_id);
+    i.WriteU32 (num_images_rqstd);
+    i.WriteU32 (image_num);
+  }
+  
+  void Deserialize (TagBuffer i) 
+  {
+    query_id = i.ReadU32 ();
+    num_images_rqstd = i.ReadU32 ();
+    image_num = i.ReadU32 ();
+  }
+  
+  void Print (std::ostream &os) const
+  {
+    os << "TopkQueryTag: [query_id, num_images_rqstd, image_num] = [" << query_id << "," << num_images_rqstd << "," << image_num  << "]\n";
+  }
+
+};
 
 /**
  * \ingroup topkquery
@@ -137,10 +194,14 @@ public:
    */
   void SetFill (uint8_t *fill, uint32_t fillSize, uint32_t dataSize);
 
+  void SetNumNodes( uint16_t numNodes ) { num_nodes = numNodes; };
+
 protected:
   virtual void DoDispose (void);
 
 private:
+
+  void Init();
 
   virtual void StartApplication (void);
   virtual void StopApplication (void);
@@ -164,15 +225,30 @@ private:
    */
   void HandleRead (Ptr<Socket> socket);
 
-  uint32_t m_count; //!< Maximum number of packets the application will send
+  void CheckQuery ( uint16_t id ); 
+  void PrintStats();
+
+  void UpdateQueryIds ()
+  {
+    if( query_ids == 65000 )
+    {
+      query_ids = 1;
+    }
+    else
+    {
+      query_ids++;
+    }
+  }
+
   Time m_interval; //!< Packet inter-send time
+  double sum_similarity;
   uint32_t m_size; //!< Size of the sent packet
 
   uint32_t m_dataSize; //!< packet payload size (must be equal to m_size)
   uint8_t *m_data; //!< packet payload data
 
   uint32_t m_sent; //!< Counter for sent packets
-  Ptr<Socket> m_socket; //!< Socket
+  std::vector<Ptr<Socket> > m_socket; //!< Socket
   Address m_peerAddress; //!< Remote peer address
   uint16_t m_peerPort; //!< Remote peer port
   EventId m_sendEvent; //!< Event to send the next packet
@@ -180,8 +256,31 @@ private:
   /// Callbacks for tracing the packet Tx events
   TracedCallback<Ptr<const Packet> > m_txTrace;
 
-	double sum_similarity;
+  uint16_t num_nodes;
+  uint32_t num_queries_issued;
+  uint32_t num_queries_satisfied;
+  uint32_t num_queries_unanswered;
+  uint32_t num_packets_rcvd_late;
+  uint32_t num_packets_rcvd;
+
+  uint16_t image_size_bytes;
+	
+  int avg_num_packets_rqrd;
 	Time timeliness;
+  Time run_time;
+  uint16_t run_seed;
+  uint16_t num_runs;
+  std::string DataFilePath;
+  std::string SumSimFilename;
+  int num_packets_per_image;
+
+  std::vector<TopkQuery> active_queries;
+  uint16_t query_ids;
+
+  //Ptr<NormalRandomVariable> rand_interval;
+  Ptr<ExponentialRandomVariable> rand_interval;
+  Ptr<UniformRandomVariable> rand_dest;
+  Ptr<NormalRandomVariable> rand_ss_dist;
 };
 
 } // namespace ns3

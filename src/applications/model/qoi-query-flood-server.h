@@ -16,16 +16,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef TOPK_QUERY_SERVER_H
-#define TOPK_QUERY_SERVER_H
+#ifndef QOI_FLOOD_QUERY_SERVER_H
+#define QOI_FLOOD_QUERY_SERVER_H
 
 #include "ns3/application.h"
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"
 #include "ns3/address.h"
+#include "ns3/qoi-query-flood-client.h"
 
-#define TOPK_QUERY_SERVER_DEBUG 0
-#define TOPK_SERVER_SOCKET_DEBUG 0
+#define QOI_QUERY_FLOOD_SERVER_DEBUG 0
 
 namespace ns3 {
 
@@ -34,16 +34,16 @@ class Packet;
 
 /**
  * \ingroup applications 
- * \defgroup topkquery TopkQuery
+ * \defgroup topkquery Qoi Query
  */
 
 /**
  * \ingroup topkquery
- * \brief A Topk Query server
+ * \brief A Qoi Query server
  *
  * Every packet received is sent back.
  */
-class TopkQueryServer : public Application 
+class QoiQueryFloodServer : public Application 
 {
 public:
   /**
@@ -51,11 +51,12 @@ public:
    * \return the object TypeId
    */
   static TypeId GetTypeId (void);
-  TopkQueryServer ();
-  virtual ~TopkQueryServer ();
+  QoiQueryFloodServer ();
+  virtual ~QoiQueryFloodServer ();
   
 
- // uint64_t image_size_bytes; // size in bytes of each image
+  void SetNumNodes( uint16_t numNodes ) { num_nodes = numNodes; };
+  void CheckQuery( int sender_id, int query_id );
 
 protected:
   virtual void DoDispose (void);
@@ -72,23 +73,37 @@ private:
    *
    * \param socket the socket the packet was received to.
    */
+  void Init();
   void HandleRead (Ptr<Socket> socket);
+  //void SendPacket (Ptr<Socket> socket, Address from, int packetNum, int query_id); 
+  void PrintStats();
 
-  void ScheduleTrx (Address from, int num_images_rqstd, int query_id); 
-  //void SendPacket (Ptr<Socket> socket, Address from, int packetNum, int num_images_rqstd, int query_id); 
-  void SendPacket (Address from, int packetNum, int num_images_rqstd, int query_id); 
-
-  EventId m_sendEvent;
-
+  double sum_similarity;
   uint16_t m_port; //!< Port on which we listen for incoming packets.
-  uint64_t image_size_bytes; // size in bytes of each image
+  int image_size_bytes; // size in bytes of each image
+  int avg_num_images_rqrd;
+	Time timeliness;
+  Time run_time;
+  uint16_t run_seed;
+  uint16_t num_runs;
+  std::string SumSimFilename;
+
   double delay_padding; // delay time (in seconds) that server waits after sending each image to ensure no loss
+  std::string DataFilePath;
+  uint16_t num_nodes;
+  uint32_t num_queries_issued;
+  uint32_t num_queries_satisfied;
+  uint32_t num_packets_rcvd;
+  uint32_t num_packets_rcvd_late;
   Ptr<Socket> m_socket; //!< IPv4 Socket
-  //Ptr<Socket> m_socket6; //!< IPv6 Socket
+  Ptr<Socket> m_socket6; //!< IPv6 Socket
   Address m_local; //!< local multicast address
+
+  std::vector< std::vector<QoiQuery> > active_queries;
+  std::vector< std::vector<QoiQuery> > old_queries;
 };
 
 } // namespace ns3
 
-#endif /* TOPK_QUERY_SERVER_H */
+#endif /* QOI_FLOOD_QUERY_SERVER_H */
 

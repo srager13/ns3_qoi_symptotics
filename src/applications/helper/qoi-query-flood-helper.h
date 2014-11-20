@@ -30,20 +30,20 @@
 namespace ns3 {
 
 /**
- * \ingroup topkquery
+ * \ingroup qoi query
  * \brief Create a server application which waits for input UDP packets
  *        and sends them back to the original sender.
  */
-class TopkQueryServerHelper
+class QoiQueryFloodServerHelper
 {
 public:
   /**
-   * Create TopkQueryServerHelper which will make life easier for people trying
+   * Create QoiQueryFloodServerHelper which will make life easier for people trying
    * to set up simulations with echos.
    *
    * \param port The port the server will wait on for incoming packets
    */
-  TopkQueryServerHelper (uint16_t port);
+  QoiQueryFloodServerHelper (uint16_t port, uint32_t num_nodes);
 
   /**
    * Record an attribute to be set in each Application after it is is created.
@@ -54,7 +54,7 @@ public:
   void SetAttribute (std::string name, const AttributeValue &value);
 
   /**
-   * Create a TopkQueryServerApplication on the specified Node.
+   * Create a QoiQueryFloodServerApplication on the specified Node.
    *
    * \param node The node on which to create the Application.  The node is
    *             specified by a Ptr<Node>.
@@ -64,7 +64,7 @@ public:
   ApplicationContainer Install (Ptr<Node> node) const;
 
   /**
-   * Create a TopkQueryServerApplication on specified node
+   * Create a QoiQueryFloodServerApplication on specified node
    *
    * \param nodeName The node on which to create the application.  The node
    *                 is specified by a node name previously registered with
@@ -78,7 +78,7 @@ public:
    * \param c The nodes on which to create the Applications.  The nodes
    *          are specified by a NodeContainer.
    *
-   * Create one topk query server application on each of the Nodes in the
+   * Create one qoi query server application on each of the Nodes in the
    * NodeContainer.
    *
    * \returns The applications created, one Application per Node in the 
@@ -88,10 +88,10 @@ public:
 
 private:
   /**
-   * Install an ns3::TopkQueryServer on the node configured with all the
+   * Install an ns3::QoiQueryFloodServer on the node configured with all the
    * attributes set with SetAttribute.
    *
-   * \param node The node on which an TopkQueryServer will be installed.
+   * \param node The node on which an QoiQueryFloodServer will be installed.
    * \returns Ptr to the application installed.
    */
   Ptr<Application> InstallPriv (Ptr<Node> node) const;
@@ -100,37 +100,37 @@ private:
 };
 
 /**
- * \ingroup topkquery
+ * \ingroup qoi query
  * \brief Create an application which sends a UDP packet and waits for an echo of this packet
  */
-class TopkQueryClientHelper
+class QoiQueryFloodClientHelper
 {
 public:
   /**
-   * Create TopkQueryClientHelper which will make life easier for people trying
+   * Create QoiQueryFloodClientHelper which will make life easier for people trying
    * to set up simulations with echos.
    *
-   * \param ip The IP address of the remote topk query server
-   * \param port The port number of the remote topk query server
+   * \param ip The IP address of the remote qoi query server
+   * \param port The port number of the remote qoi query server
    */
-  TopkQueryClientHelper (uint16_t port, uint32_t num_nodes);
-  TopkQueryClientHelper (Address ip, uint16_t port, uint32_t num_nodes);
+  QoiQueryFloodClientHelper (uint16_t port, uint32_t num_nodes);
+  QoiQueryFloodClientHelper (Address ip, uint16_t port, uint32_t num_nodes);
   /**
-   * Create TopkQueryClientHelper which will make life easier for people trying
+   * Create QoiQueryFloodClientHelper which will make life easier for people trying
    * to set up simulations with echos.
    *
-   * \param ip The IPv4 address of the remote topk query server
-   * \param port The port number of the remote topk query server
+   * \param ip The IPv4 address of the remote qoi query server
+   * \param port The port number of the remote qoi query server
    */
-  TopkQueryClientHelper (Ipv4Address ip, uint16_t port, uint32_t num_nodes);
+  QoiQueryFloodClientHelper (Ipv4Address ip, uint16_t port, uint32_t num_nodes);
   /**
-   * Create TopkQueryClientHelper which will make life easier for people trying
+   * Create QoiQueryFloodClientHelper which will make life easier for people trying
    * to set up simulations with echos.
    *
-   * \param ip The IPv6 address of the remote topk query server
-   * \param port The port number of the remote topk query server
+   * \param ip The IPv6 address of the remote qoi query server
+   * \param port The port number of the remote qoi query server
    */
-  TopkQueryClientHelper (Ipv6Address ip, uint16_t port, uint32_t num_nodes);
+  QoiQueryFloodClientHelper (Ipv6Address ip, uint16_t port, uint32_t num_nodes);
 
   /**
    * Record an attribute to be set in each Application after it is is created.
@@ -141,7 +141,7 @@ public:
   void SetAttribute (std::string name, const AttributeValue &value);
 
   /**
-   * Given a pointer to a TopkQueryClient application, set the data fill of the 
+   * Given a pointer to a QoiQueryFloodClient application, set the data fill of the 
    * packet (what is sent as data to the server) to the contents of the fill
    * string (including the trailing zero terminator).
    *
@@ -149,13 +149,13 @@ public:
    * to reflect the size of the fill string -- this means that the PacketSize
    * attribute may be changed as a result of this call.
    *
-   * \param app Smart pointer to the application (real type must be TopkQueryClient).
+   * \param app Smart pointer to the application (real type must be QoiQueryFloodClient).
    * \param fill The string to use as the actual echo data bytes.
    */
   void SetFill (Ptr<Application> app, std::string fill);
 
   /**
-   * Given a pointer to a TopkQueryClient application, set the data fill of the 
+   * Given a pointer to a QoiQueryFloodClient application, set the data fill of the 
    * packet (what is sent as data to the server) to the contents of the fill
    * byte.
    *
@@ -165,14 +165,14 @@ public:
    * to reflect the dataLength parameter -- this means that the PacketSize
    * attribute may be changed as a result of this call.
    *
-   * \param app Smart pointer to the application (real type must be TopkQueryClient).
+   * \param app Smart pointer to the application (real type must be QoiQueryFloodClient).
    * \param fill The byte to be repeated in constructing the packet data..
    * \param dataLength The desired length of the resulting echo packet data.
    */
   void SetFill (Ptr<Application> app, uint8_t fill, uint32_t dataLength);
 
   /**
-   * Given a pointer to a TopkQueryClient application, set the data fill of the 
+   * Given a pointer to a QoiQueryFloodClient application, set the data fill of the 
    * packet (what is sent as data to the server) to the contents of the fill
    * buffer, repeated as many times as is required.
    *
@@ -184,7 +184,7 @@ public:
    * to reflect the dataLength parameter -- this means that the PacketSize
    * attribute of the Application may be changed as a result of this call.
    *
-   * \param app Smart pointer to the application (real type must be TopkQueryClient).
+   * \param app Smart pointer to the application (real type must be QoiQueryFloodClient).
    * \param fill The fill pattern to use when constructing packets.
    * \param fillLength The number of bytes in the provided fill pattern.
    * \param dataLength The desired length of the final echo data.
@@ -192,10 +192,10 @@ public:
   void SetFill (Ptr<Application> app, uint8_t *fill, uint32_t fillLength, uint32_t dataLength);
 
   /**
-   * Create a topk query client application on the specified node.  The Node
+   * Create a qoi query client application on the specified node.  The Node
    * is provided as a Ptr<Node>.
    *
-   * \param node The Ptr<Node> on which to create the TopkQueryClientApplication.
+   * \param node The Ptr<Node> on which to create the QoiQueryFloodClientApplication.
    *
    * \returns An ApplicationContainer that holds a Ptr<Application> to the 
    *          application created
@@ -203,11 +203,11 @@ public:
   ApplicationContainer Install (Ptr<Node> node) const;
 
   /**
-   * Create a topk query client application on the specified node.  The Node
+   * Create a qoi query client application on the specified node.  The Node
    * is provided as a string name of a Node that has been previously 
    * associated using the Object Name Service.
    *
-   * \param nodeName The name of the node on which to create the TopkQueryClientApplication
+   * \param nodeName The name of the node on which to create the QoiQueryFloodClientApplication
    *
    * \returns An ApplicationContainer that holds a Ptr<Application> to the 
    *          application created
@@ -217,7 +217,7 @@ public:
   /**
    * \param c the nodes
    *
-   * Create one topk query client application on each of the input nodes
+   * Create one qoi query client application on each of the input nodes
    *
    * \returns the applications created, one application per input node.
    */
@@ -225,10 +225,10 @@ public:
 
 private:
   /**
-   * Install an ns3::TopkQueryClient on the node configured with all the
+   * Install an ns3::QoiQueryFloodClient on the node configured with all the
    * attributes set with SetAttribute.
    *
-   * \param node The node on which an TopkQueryClient will be installed.
+   * \param node The node on which an QoiQueryFloodClient will be installed.
    * \returns Ptr to the application installed.
    */
   Ptr<Application> InstallPriv (Ptr<Node> node) const;

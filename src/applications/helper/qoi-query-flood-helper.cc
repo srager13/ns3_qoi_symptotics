@@ -17,22 +17,23 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-#include "topk-query-helper.h"
-#include "ns3/topk-query-server.h"
-#include "ns3/topk-query-client.h"
+#include "qoi-query-flood-helper.h"
+#include "ns3/qoi-query-flood-server.h"
+#include "ns3/qoi-query-flood-client.h"
 #include "ns3/uinteger.h"
 #include "ns3/names.h"
 
 namespace ns3 {
 
-TopkQueryServerHelper::TopkQueryServerHelper (uint16_t port)
+QoiQueryFloodServerHelper::QoiQueryFloodServerHelper (uint16_t port, uint32_t num_nodes)
 {
-  m_factory.SetTypeId (TopkQueryServer::GetTypeId ());
+  m_factory.SetTypeId (QoiQueryFloodServer::GetTypeId ());
   SetAttribute ("Port", UintegerValue (port));
+  SetAttribute ("NumNodes", UintegerValue(num_nodes));
 }
 
 void 
-TopkQueryServerHelper::SetAttribute (
+QoiQueryFloodServerHelper::SetAttribute (
   std::string name, 
   const AttributeValue &value)
 {
@@ -40,20 +41,20 @@ TopkQueryServerHelper::SetAttribute (
 }
 
 ApplicationContainer
-TopkQueryServerHelper::Install (Ptr<Node> node) const
+QoiQueryFloodServerHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-TopkQueryServerHelper::Install (std::string nodeName) const
+QoiQueryFloodServerHelper::Install (std::string nodeName) const
 {
   Ptr<Node> node = Names::Find<Node> (nodeName);
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-TopkQueryServerHelper::Install (NodeContainer c) const
+QoiQueryFloodServerHelper::Install (NodeContainer c) const
 {
   ApplicationContainer apps;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
@@ -65,47 +66,47 @@ TopkQueryServerHelper::Install (NodeContainer c) const
 }
 
 Ptr<Application>
-TopkQueryServerHelper::InstallPriv (Ptr<Node> node) const
+QoiQueryFloodServerHelper::InstallPriv (Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<TopkQueryServer> ();
+  Ptr<Application> app = m_factory.Create<QoiQueryFloodServer> ();
   node->AddApplication (app);
 
   return app;
 }
 
-TopkQueryClientHelper::TopkQueryClientHelper (uint16_t port, uint32_t num_nodes)
+QoiQueryFloodClientHelper::QoiQueryFloodClientHelper (uint16_t port, uint32_t num_nodes)
 {
-  m_factory.SetTypeId (TopkQueryClient::GetTypeId ());
+  m_factory.SetTypeId (QoiQueryFloodClient::GetTypeId ());
   SetAttribute ("RemotePort", UintegerValue (port));
   SetAttribute ("NumNodes", UintegerValue(num_nodes));
 }
 
-TopkQueryClientHelper::TopkQueryClientHelper (Address address, uint16_t port, uint32_t num_nodes)
+QoiQueryFloodClientHelper::QoiQueryFloodClientHelper (Address address, uint16_t port, uint32_t num_nodes)
 {
-  m_factory.SetTypeId (TopkQueryClient::GetTypeId ());
+  m_factory.SetTypeId (QoiQueryFloodClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (address));
   SetAttribute ("RemotePort", UintegerValue (port));
   SetAttribute ("NumNodes", UintegerValue(num_nodes));
 }
 
-TopkQueryClientHelper::TopkQueryClientHelper (Ipv4Address address, uint16_t port, uint32_t num_nodes)
+QoiQueryFloodClientHelper::QoiQueryFloodClientHelper (Ipv4Address address, uint16_t port, uint32_t num_nodes)
 {
-  m_factory.SetTypeId (TopkQueryClient::GetTypeId ());
+  m_factory.SetTypeId (QoiQueryFloodClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (Address(address)));
   SetAttribute ("RemotePort", UintegerValue (port));
   SetAttribute ("NumNodes", UintegerValue(num_nodes));
 }
 
-TopkQueryClientHelper::TopkQueryClientHelper (Ipv6Address address, uint16_t port, uint32_t num_nodes)
+QoiQueryFloodClientHelper::QoiQueryFloodClientHelper (Ipv6Address address, uint16_t port, uint32_t num_nodes)
 {
-  m_factory.SetTypeId (TopkQueryClient::GetTypeId ());
+  m_factory.SetTypeId (QoiQueryFloodClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (Address(address)));
   SetAttribute ("RemotePort", UintegerValue (port));
   SetAttribute ("NumNodes", UintegerValue(num_nodes));
 }
 
 void 
-TopkQueryClientHelper::SetAttribute (
+QoiQueryFloodClientHelper::SetAttribute (
   std::string name, 
   const AttributeValue &value)
 {
@@ -113,38 +114,38 @@ TopkQueryClientHelper::SetAttribute (
 }
 
 void
-TopkQueryClientHelper::SetFill (Ptr<Application> app, std::string fill)
+QoiQueryFloodClientHelper::SetFill (Ptr<Application> app, std::string fill)
 {
-  app->GetObject<TopkQueryClient>()->SetFill (fill);
+  app->GetObject<QoiQueryFloodClient>()->SetFill (fill);
 }
 
 void
-TopkQueryClientHelper::SetFill (Ptr<Application> app, uint8_t fill, uint32_t dataLength)
+QoiQueryFloodClientHelper::SetFill (Ptr<Application> app, uint8_t fill, uint32_t dataLength)
 {
-  app->GetObject<TopkQueryClient>()->SetFill (fill, dataLength);
+  app->GetObject<QoiQueryFloodClient>()->SetFill (fill, dataLength);
 }
 
 void
-TopkQueryClientHelper::SetFill (Ptr<Application> app, uint8_t *fill, uint32_t fillLength, uint32_t dataLength)
+QoiQueryFloodClientHelper::SetFill (Ptr<Application> app, uint8_t *fill, uint32_t fillLength, uint32_t dataLength)
 {
-  app->GetObject<TopkQueryClient>()->SetFill (fill, fillLength, dataLength);
+  app->GetObject<QoiQueryFloodClient>()->SetFill (fill, fillLength, dataLength);
 }
 
 ApplicationContainer
-TopkQueryClientHelper::Install (Ptr<Node> node) const
+QoiQueryFloodClientHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-TopkQueryClientHelper::Install (std::string nodeName) const
+QoiQueryFloodClientHelper::Install (std::string nodeName) const
 {
   Ptr<Node> node = Names::Find<Node> (nodeName);
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-TopkQueryClientHelper::Install (NodeContainer c) const
+QoiQueryFloodClientHelper::Install (NodeContainer c) const
 {
   ApplicationContainer apps;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
@@ -156,9 +157,9 @@ TopkQueryClientHelper::Install (NodeContainer c) const
 }
 
 Ptr<Application>
-TopkQueryClientHelper::InstallPriv (Ptr<Node> node) const
+QoiQueryFloodClientHelper::InstallPriv (Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<TopkQueryClient> ();
+  Ptr<Application> app = m_factory.Create<QoiQueryFloodClient> ();
   node->AddApplication (app);
 
   return app;

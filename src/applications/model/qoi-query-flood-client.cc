@@ -31,7 +31,8 @@
 #include "ns3/trace-source-accessor.h"
 #include "ns3/double.h"
 #include "ns3/string.h"
-#include "topk-query-client.h"
+#include "qoi-query-flood-client.h"
+#include "qoi-query-flood-server.h"
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -39,91 +40,91 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("TopkQueryClientApplication");
-NS_OBJECT_ENSURE_REGISTERED (TopkQueryClient);
+NS_LOG_COMPONENT_DEFINE ("QoiQueryFloodClientApplication");
+NS_OBJECT_ENSURE_REGISTERED (QoiQueryFloodClient);
 
 TypeId
-TopkQueryClient::GetTypeId (void)
+QoiQueryFloodClient::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::TopkQueryClient")
+  static TypeId tid = TypeId ("ns3::QoiQueryFloodClient")
     .SetParent<Application> ()
-    .AddConstructor<TopkQueryClient> ()
+    .AddConstructor<QoiQueryFloodClient> ()
     .AddAttribute ("Interval", 
                    "The time to wait between packets",
                    TimeValue (Seconds (1.0)),
-                   MakeTimeAccessor (&TopkQueryClient::m_interval),
+                   MakeTimeAccessor (&QoiQueryFloodClient::m_interval),
                    MakeTimeChecker ())
     .AddAttribute ("SumSimilarity", 
                    "QoI Sum Similarity requirement of query.",
                    DoubleValue (100),
-                   MakeDoubleAccessor (&TopkQueryClient::sum_similarity),
+                   MakeDoubleAccessor (&QoiQueryFloodClient::sum_similarity),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("NumPacketsPerImage", 
+                   "Number of packets for each image.",
+                   IntegerValue (1),
+                   MakeIntegerAccessor (&QoiQueryFloodClient::num_packets_per_image),
+                   MakeIntegerChecker<int> ())
     .AddAttribute ("RemoteAddress", 
                    "The destination Address of the outbound packets",
                    AddressValue (),
-                   MakeAddressAccessor (&TopkQueryClient::m_peerAddress),
+                   MakeAddressAccessor (&QoiQueryFloodClient::m_peerAddress),
                    MakeAddressChecker ())
     .AddAttribute ("RemotePort", 
                    "The destination port of the outbound packets",
                    UintegerValue (0),
-                   MakeUintegerAccessor (&TopkQueryClient::m_peerPort),
+                   MakeUintegerAccessor (&QoiQueryFloodClient::m_peerPort),
                    MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("PacketSize", "Size of echo data in outbound packets",
                    UintegerValue (100),
-                   MakeUintegerAccessor (&TopkQueryClient::SetDataSize,
-                                         &TopkQueryClient::GetDataSize),
+                   MakeUintegerAccessor (&QoiQueryFloodClient::SetDataSize,
+                                         &QoiQueryFloodClient::GetDataSize),
                    MakeUintegerChecker<uint32_t> ())
     .AddTraceSource ("Tx", "A new packet is created and is sent",
-                     MakeTraceSourceAccessor (&TopkQueryClient::m_txTrace))
+                     MakeTraceSourceAccessor (&QoiQueryFloodClient::m_txTrace))
     .AddAttribute ("Timeliness", 
                    "Timeliness constraint",
                    TimeValue (Seconds (1.0)),
-                   MakeTimeAccessor (&TopkQueryClient::timeliness),
+                   MakeTimeAccessor (&QoiQueryFloodClient::timeliness),
                    MakeTimeChecker ())
-    .AddAttribute("DataFilePath",
-                   "Path to the directory containing the .csv stats file.",
-                   StringValue("./"),
-                   MakeStringAccessor (&TopkQueryClient::DataFilePath),
-                   MakeStringChecker())
     .AddAttribute("SumSimFilename",
                    "File to look up sum sim vs. number of packets needed (in $NS3_DIR).",
                    StringValue("SumSimRequirements.csv"),
-                   MakeStringAccessor (&TopkQueryClient::SumSimFilename),
+                   MakeStringAccessor (&QoiQueryFloodClient::SumSimFilename),
                    MakeStringChecker())
-    .AddAttribute ("NumPacketsPerImage", 
-                   "Number of packets for each image.",
-                   IntegerValue (0),
-                   MakeIntegerAccessor (&TopkQueryClient::num_packets_per_image),
-                   MakeIntegerChecker<int> ())
     .AddAttribute ("NumNodes", 
                    "Number of nodes in the scenario.",
                    UintegerValue (0),
-                   MakeUintegerAccessor (&TopkQueryClient::SetNumNodes),
+                   MakeUintegerAccessor (&QoiQueryFloodClient::SetNumNodes),
                    MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("ImageSizeBytes", 
                    "The size of each image (all assumed to be the same) in bytes.",
-                   UintegerValue (2000000),
-                   MakeUintegerAccessor (&TopkQueryClient::image_size_bytes),
-                   MakeUintegerChecker<uint16_t> ())
+                   IntegerValue (2000000),
+                   MakeIntegerAccessor (&QoiQueryFloodClient::image_size_bytes),
+                   MakeIntegerChecker<int> ())
+    .AddAttribute ("DelayPadding", 
+                   "Delay time in seconds that client waits in between sending each packet to prevent overloading socket.",
+                   DoubleValue (0.1),
+                   MakeDoubleAccessor (&QoiQueryFloodClient::delay_padding),
+                   MakeDoubleChecker<double> ())
     .AddAttribute ("RunTime", "Total time of simulation.",
                    TimeValue (Seconds (50)),
-                   MakeTimeAccessor (&TopkQueryClient::run_time),
+                   MakeTimeAccessor (&QoiQueryFloodClient::run_time),
                    MakeTimeChecker ())
     .AddAttribute ("RunSeed", "Trial number.",
                    UintegerValue (1),
-                   MakeUintegerAccessor (&TopkQueryClient::run_seed),
+                   MakeUintegerAccessor (&QoiQueryFloodClient::run_seed),
                    MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("NumRuns", "Total number of trials.",
                    UintegerValue (1),
-                   MakeUintegerAccessor (&TopkQueryClient::num_runs),
+                   MakeUintegerAccessor (&QoiQueryFloodClient::num_runs),
                    MakeUintegerChecker<uint16_t> ())
   ;
   return tid;
 }
 
 // constructor
-TopkQueryClient::TopkQueryClient () :
-  m_interval(Time("10s")),
+QoiQueryFloodClient::QoiQueryFloodClient () :
+  m_interval(Time("5s")),
   timeliness(Time("1s")),
   run_time(Time("100s"))
 {
@@ -134,8 +135,6 @@ TopkQueryClient::TopkQueryClient () :
   m_dataSize = 0;
   num_queries_issued = 0;
   num_queries_satisfied = 0;
-  num_queries_unanswered = 0;
-  num_packets_rcvd_late = 0;
   num_packets_rcvd = 0;
   query_ids = 1;
 
@@ -145,23 +144,24 @@ TopkQueryClient::TopkQueryClient () :
   rand_ss_dist->SetAttribute("Mean", DoubleValue(0));
   rand_ss_dist->SetAttribute("Variance", DoubleValue(3));
 
-  Simulator::Schedule( NanoSeconds(1), &TopkQueryClient::Init, this );
+  Simulator::Schedule( NanoSeconds(1), &QoiQueryFloodClient::Init, this );
 }
 
 void
-TopkQueryClient::Init()
+QoiQueryFloodClient::Init()
 {
-  //rand_interval = CreateObject<NormalRandomVariable>();
   rand_interval = CreateObject<ExponentialRandomVariable>();
-  /*if( TOPK_QUERY_CLIENT_DEBUG )
+  //rand_interval = CreateObject<NormalRandomVariable>();
+  if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
   {
     std::cout<<"Setting rand_interval to mean of " << timeliness.GetSeconds() << "\n";
   }
-*/
-  rand_interval->SetAttribute("Mean", DoubleValue(5.0));
   //rand_interval->SetAttribute("Mean", DoubleValue(timeliness.GetSeconds()+1.0));
   //rand_interval->SetAttribute("Variance", DoubleValue(3.0));
-  
+  //rand_interval->SetAttribute("Bound", DoubleValue(timeliness.GetSeconds()+10.0));
+  rand_interval->SetAttribute("Mean", DoubleValue(5.0));
+  //rand_interval->SetAttribute("Bound", DoubleValue(m_interval.GetSeconds()+10.0));
+
   for( int i = 0; i < num_nodes; i++ )
   {
     Ptr<Socket> sock = 0;
@@ -175,8 +175,8 @@ TopkQueryClient::Init()
   sumsim_fd.open( buf, std::ifstream::in );
   if( !sumsim_fd.is_open() )
   {
-    avg_num_packets_rqrd = 10;
-    std::cout << "Error opening sum similarity requirements file: " << buf << "...setting average number of images to default ("<<avg_num_packets_rqrd << ")\n";
+    avg_num_images_rqrd = 10;
+    std::cout << "Error opening sum similarity requirements file: " << buf << "...setting average number of images to default ("<<avg_num_images_rqrd << ")\n";
   }
   else
   {
@@ -191,17 +191,17 @@ TopkQueryClient::Init()
       sumsim_fd.getline( buf, 32, '\n' );  
       num_images = num_packets_per_image*(int)strtod(buf,&pEnd);
     
-      if( TOPK_QUERY_CLIENT_DEBUG )
+      if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
       {
         std::cout<<"From file: sum_sim = " << sum_sim << ", num_images = " << num_images <<" (input sum similarity = " << sum_similarity << ")\n";
       }
 
       if( sum_sim >= sum_similarity )
       {
-        avg_num_packets_rqrd = num_images;
-        if( TOPK_QUERY_CLIENT_DEBUG )
+        avg_num_images_rqrd = num_images;
+        if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
         {
-          std::cout<<"Found requirement. Setting avg_num_packets_rqrd to " << avg_num_packets_rqrd << "\n";
+          std::cout<<"Found requirement. Setting avg_num_images_rqrd to " << avg_num_images_rqrd << "\n";
         }
         found_requ = true;
         break;
@@ -209,21 +209,14 @@ TopkQueryClient::Init()
     }
     if( !found_requ )
     {
-      avg_num_packets_rqrd = 10;
-      std::cout << "Error: didn't find valid requirement in file...setting average number of images to default ("<<avg_num_packets_rqrd << ")\n";
+      avg_num_images_rqrd = 10;
+      std::cout << "Error: didn't find valid requirement in file...setting average number of images to default ("<<avg_num_images_rqrd << ")\n";
     }
   }
 
-  Time delay = run_time-Seconds(1);
-  if( TOPK_QUERY_CLIENT_DEBUG )
-  {
-    std::cout<<"Scheduling PrintStats with delay = " << delay.GetSeconds() << "...run_time = " << run_time.GetSeconds() << "\n";
-  }
-  Simulator::Schedule( delay, &TopkQueryClient::PrintStats, this );
-  
 }
 
-TopkQueryClient::~TopkQueryClient()
+QoiQueryFloodClient::~QoiQueryFloodClient()
 {
   NS_LOG_FUNCTION (this);
 
@@ -233,7 +226,7 @@ TopkQueryClient::~TopkQueryClient()
 }
 
 void 
-TopkQueryClient::SetRemote (Address ip, uint16_t port)
+QoiQueryFloodClient::SetRemote (Address ip, uint16_t port)
 {
   NS_LOG_FUNCTION (this << ip << port);
   m_peerAddress = ip;
@@ -241,7 +234,7 @@ TopkQueryClient::SetRemote (Address ip, uint16_t port)
 }
 
 void 
-TopkQueryClient::SetRemote (Ipv4Address ip, uint16_t port)
+QoiQueryFloodClient::SetRemote (Ipv4Address ip, uint16_t port)
 {
   NS_LOG_FUNCTION (this << ip << port);
   m_peerAddress = Address (ip);
@@ -249,7 +242,7 @@ TopkQueryClient::SetRemote (Ipv4Address ip, uint16_t port)
 }
 
 void 
-TopkQueryClient::SetRemote (Ipv6Address ip, uint16_t port)
+QoiQueryFloodClient::SetRemote (Ipv6Address ip, uint16_t port)
 {
   NS_LOG_FUNCTION (this << ip << port);
   m_peerAddress = Address (ip);
@@ -257,21 +250,21 @@ TopkQueryClient::SetRemote (Ipv6Address ip, uint16_t port)
 }
 
 void
-TopkQueryClient::DoDispose (void)
+QoiQueryFloodClient::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
   Application::DoDispose ();
 }
 
 void 
-TopkQueryClient::StartApplication (void)
+QoiQueryFloodClient::StartApplication (void)
 {
   NS_LOG_FUNCTION (this);
 
   Ptr<Ipv4> ipv4 = GetNode()->GetObject<Ipv4>();
   Ipv4InterfaceAddress iaddr = ipv4->GetAddress(1,0);
   Ipv4Address iad = iaddr.GetLocal();
-  if( TOPK_QUERY_CLIENT_DEBUG )
+  if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
   {
     std::cout << "Node " << GetNode()->GetId() <<"'s IP address = " << iad << "\n";
   }
@@ -324,7 +317,7 @@ TopkQueryClient::StartApplication (void)
     }
     else
     {
-      std::cout<<"ERROR:  Need to account for addresses higher than 1536 nodes (in topk-query-client.cc)\n";
+      std::cout<<"ERROR:  Need to account for addresses higher than 1536 nodes (in qoi-query-flood-client.cc)\n";
       exit(-1);
     }
 
@@ -353,18 +346,17 @@ TopkQueryClient::StartApplication (void)
       */
     }
 
-    m_socket[i]->SetRecvCallback (MakeCallback (&TopkQueryClient::HandleRead, this));
+    m_socket[i]->SetRecvCallback (MakeCallback (&QoiQueryFloodClient::HandleRead, this));
   }
 
   Time next = timeliness + Seconds(rand_interval->GetValue());
-  //Time next = timeliness;
   if( next.GetSeconds() < 0.0 )
     next = timeliness;
   ScheduleTransmit (next);
 }
 
 void 
-TopkQueryClient::StopApplication ()
+QoiQueryFloodClient::StopApplication ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -382,7 +374,7 @@ TopkQueryClient::StopApplication ()
 }
 
 void 
-TopkQueryClient::SetDataSize (uint32_t dataSize)
+QoiQueryFloodClient::SetDataSize (uint32_t dataSize)
 {
   NS_LOG_FUNCTION (this << dataSize);
 
@@ -398,14 +390,14 @@ TopkQueryClient::SetDataSize (uint32_t dataSize)
 }
 
 uint32_t 
-TopkQueryClient::GetDataSize (void) const
+QoiQueryFloodClient::GetDataSize (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_size;
 }
 
 void 
-TopkQueryClient::SetFill (std::string fill)
+QoiQueryFloodClient::SetFill (std::string fill)
 {
   NS_LOG_FUNCTION (this << fill);
 
@@ -427,7 +419,7 @@ TopkQueryClient::SetFill (std::string fill)
 }
 
 void 
-TopkQueryClient::SetFill (uint8_t fill, uint32_t dataSize)
+QoiQueryFloodClient::SetFill (uint8_t fill, uint32_t dataSize)
 {
   NS_LOG_FUNCTION (this << fill << dataSize);
   if (dataSize != m_dataSize)
@@ -446,7 +438,7 @@ TopkQueryClient::SetFill (uint8_t fill, uint32_t dataSize)
 }
 
 void 
-TopkQueryClient::SetFill (uint8_t *fill, uint32_t fillSize, uint32_t dataSize)
+QoiQueryFloodClient::SetFill (uint8_t *fill, uint32_t fillSize, uint32_t dataSize)
 {
   NS_LOG_FUNCTION (this << fill << fillSize << dataSize);
   if (dataSize != m_dataSize)
@@ -485,74 +477,36 @@ TopkQueryClient::SetFill (uint8_t *fill, uint32_t fillSize, uint32_t dataSize)
 }
 
 void 
-TopkQueryClient::ScheduleTransmit (Time dt)
+QoiQueryFloodClient::ScheduleTransmit (Time dt)
 {
   //std::cout<<"Scheduling Send with delay = " << dt.GetSeconds() << "\n";
   NS_LOG_FUNCTION (this << dt);
-  m_sendEvent = Simulator::Schedule (dt, &TopkQueryClient::Send, this);
+  m_sendEvent = Simulator::Schedule (dt, &QoiQueryFloodClient::Send, this);
 }
 
 void 
-TopkQueryClient::Send (void)
+QoiQueryFloodClient::Send (void)
 {
-
   NS_LOG_FUNCTION (this);
 
   NS_ASSERT (m_sendEvent.IsExpired ());
-
-  Ptr<Packet> p;
-  if (m_dataSize)
-    {
-      //
-      // If m_dataSize is non-zero, we have a data buffer of the same size that we
-      // are expected to copy and send.  This state of affairs is created if one of
-      // the Fill functions is called.  In this case, m_size must have been set
-      // to agree with m_dataSize
-      //
-      NS_ASSERT_MSG (m_dataSize == m_size, "TopkQueryClient::Send(): m_size and m_dataSize inconsistent");
-      NS_ASSERT_MSG (m_data, "TopkQueryClient::Send(): m_dataSize but no m_data");
-      p = Create<Packet> (m_data, m_dataSize);
-    }
-  else
-    {
-      //
-      // If m_dataSize is zero, the client has indicated that it doesn't care
-      // about the data itself either by specifying the data size by setting
-      // the corresponding attribute or by not calling a SetFill function.  In
-      // this case, we don't worry about it either.  But we do allow m_size
-      // to have a value different from the (zero) m_dataSize.
-      //
-      p = Create<Packet> (m_size);
-    }
-
   // num images set from sum similarity requirement input.  
   // Here we vary slightly around that number just to provide a little bit of randomness
-  int num_images_needed = avg_num_packets_rqrd; 
-
-  // REMOVE
-  //int rand_change =  (int)rand_ss_dist->GetValue();
-  int rand_change = 0;
+  int num_images_needed = avg_num_images_rqrd; 
+  int rand_change =  (int)rand_ss_dist->GetValue();
   num_images_needed += rand_change;
-  if( TOPK_QUERY_CLIENT_DEBUG )
+  if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
   {
     std::cout<<"rand_change = " << rand_change << ", resulting required image num = " << num_images_needed << "\n";
   }
  
-  TopkQuery new_query;
-  new_query.id =  query_ids;
-  new_query.num_images_rqstd = num_images_needed;
-  new_query.num_images_rcvd = 0;
-  new_query.start_time = Simulator::Now();
-  new_query.deadline = Simulator::Now() + timeliness;
   // only count the issued queries that have a chance to finish before the end of the simulation
   if( Simulator::Now() + timeliness < run_time )
   {
     num_queries_issued++;
-    // Schedule function to check on this query at the deadline to see if it was satisfied
-    Simulator::Schedule( timeliness, &TopkQueryClient::CheckQuery, this, new_query.id );
-    if( TOPK_QUERY_CLIENT_DEBUG )
+    if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
     {
-      std::cout<<"sending query with id = " << new_query.id << "; number sent = " << num_queries_issued << "\n";
+      std::cout<<"sending query with id = " << query_ids << "; number sent = " << num_queries_issued << "\n";
     }
   }
   else
@@ -560,66 +514,37 @@ TopkQueryClient::Send (void)
     return;
   }
 
-  // add to list of active queries 
-  active_queries.push_back( new_query ); 
-  
-  UpdateQueryIds();
- 
-  TopkQueryTag tag( new_query.id, num_images_needed, 0 );
-  p->AddPacketTag(tag); 
-  // call to the trace sinks before the packet is actually sent,
-  // so that tags added to the packet can be sent as well
-  m_txTrace (p);
-
-  // choose random destination (not self)
-  uint16_t dest;
-  do
+  // for every possible destination (not self), send num_images_needed packets
+  for( uint16_t dest = 0; dest < num_nodes; dest++ ) 
   {
-    dest = rand_dest->GetInteger(0, num_nodes-1);
-  }while( dest == GetNode()->GetId() );
+    if( dest == GetNode()->GetId() )
+      continue;
 
-  if( m_socket[dest] == 0 )
-  {
-		std::cout << "ERROR: socket[" << dest << "] == 0 in node " << GetNode()->GetId() << "\n";
-  }
-
-  if( m_socket[dest]->Send (p) < 0 )
-	{
-		std::cout << "ERROR sending packet on socket from node " << GetNode()->GetId() << " to node " << dest << " at time " << Simulator::Now().GetSeconds() << "\n";
-	}
-
-  ++m_sent;
-
-  uint8_t firstByte = dest&(uint8_t)255;
-  uint8_t secondByte = (dest>>8)&(uint8_t)255;
-  //uint8_t ipv6[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,secondByte,firstByte};
-    
-  char buf[32];
-  sprintf(buf, "10.1.%i.%i", secondByte+1, firstByte); 
-
-  Ipv4Address ipv4 = Ipv4Address(buf);
-  if (Ipv4Address::IsMatchingType (Ipv4Address(ipv4)))
-  {
-    if( TOPK_QUERY_CLIENT_DEBUG )
+    if( m_socket[dest] == 0 )
     {
-      std::cout << "At time " << Simulator::Now ().GetSeconds () << "s client in node " << GetNode()->GetId() << 
-                   " sent " << m_size << " bytes to " <<
-                   Ipv4Address::ConvertFrom (ipv4) << " port " << m_peerPort << "\n";
+      std::cout << "ERROR: socket[" << dest << "] == 0 in node " << GetNode()->GetId() << "\n";
+    }
+ 
+    for( int i = 0; i < num_images_needed; i++ )
+    { 
+      //Time delay = Seconds(i*(((image_size_bytes*8.0)/11000000.0)+delay_padding));
+      double bit_rate = 2000000.0/8.0;
+      double num_bits = image_size_bytes*8.0;
+      //Time delay = Seconds(dest*i*(((image_size_bytes*8.0)/11000000.0)+delay_padding));
+      Time delay = Seconds( i * ( (num_bits/bit_rate) ) );
+      Simulator::Schedule( delay, &QoiQueryFloodClient::SendPacket, this, dest, num_images_needed, query_ids );
     }
   }
-  /*else if (Ipv6Address::IsMatchingType (Ipv6Address(ipv6)))
-  {
-    std::cout << "At time " << Simulator::Now ().GetSeconds () << "s client sent " << m_size << " bytes to " <<
-                  Ipv6Address::ConvertFrom (Ipv6Address(ipv6)) << " port " << m_peerPort << "\n";
-  }*/
+  
+  UpdateQueryIds();
 
+  // schedule sending next round of images
   Time next = timeliness + Seconds(rand_interval->GetValue());
-  //Time next = timeliness + Seconds(5.0);
   if( next.GetSeconds() < 0.0 )
     next = timeliness;
   if( Simulator::Now() + next + timeliness + Seconds(10.0) < run_time ) // adding 10 seconds for buffer
   {
-    if( TOPK_QUERY_CLIENT_DEBUG )
+    if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
     {
       std::cout<<"delay until schedule next send = " << next.GetSeconds() << "\n";
     }
@@ -627,148 +552,75 @@ TopkQueryClient::Send (void)
   }
   else
   {
-    if( TOPK_QUERY_CLIENT_DEBUG )
+    if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
     {
       std::cout<<"not enough time for another send\n";
     }
   }
 }
 
+void 
+QoiQueryFloodClient::SendPacket(uint16_t dest, int numImagesNeeded, int query_id)
+{
+  Ptr<Packet> p = Create<Packet>(image_size_bytes);
+
+  QoiQueryTag tag( GetNode()->GetId(), query_id, numImagesNeeded, 0 );
+  p->AddPacketTag(tag); 
+  // call to the trace sinks before the packet is actually sent,
+  // so that tags added to the packet can be sent as well
+  m_txTrace (p);
+
+  if( m_socket[dest]->Send (p) < 0 )
+  {
+    std::cout << "ERROR sending packet on socket from node " << GetNode()->GetId() << " to node " << dest << " at time " << Simulator::Now().GetSeconds() << "\n";
+  }
+
+  ++m_sent;
+
+  uint8_t firstByte = dest&(uint8_t)255;
+  uint8_t secondByte = (dest>>8)&(uint8_t)255;
+    
+  char buf[32];
+  sprintf(buf, "10.1.%i.%i", secondByte+1, firstByte); 
+
+  Ipv4Address ipv4 = Ipv4Address(buf);
+  if (Ipv4Address::IsMatchingType (Ipv4Address(ipv4)))
+  {
+    if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
+    {
+      std::cout << "At time " << Simulator::Now ().GetSeconds () << "s client in node " << GetNode()->GetId() << 
+                   " sent " << image_size_bytes << " bytes of query " << query_id << " to " <<
+                   "node " << dest << "\n";
+   //                Ipv4Address::ConvertFrom (ipv4) << " port " << m_peerPort << "\n";
+    }
+  }
+
+}
+
 void
-TopkQueryClient::HandleRead (Ptr<Socket> socket)
+QoiQueryFloodClient::HandleRead (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
   Ptr<Packet> packet;
   Address from;
   while ((packet = socket->RecvFrom (from)))
     {
+      if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
+      {
+		  	std::cout<<"Client in node " << GetNode()->GetId() << " received packet from " << InetSocketAddress::ConvertFrom(from).GetIpv4() << "\n";
+      }
       num_packets_rcvd++;
 
-      bool found_query = false;
-      TopkQueryTag tag( -1, -1, 0 );
-      if( packet->RemovePacketTag(tag) )
-      {
-        // find active query in the list and update images_rcvd
-        for( uint16_t i = 0; i < active_queries.size(); i++ )
-        {
-          if( active_queries[i].id == tag.query_id )
-          {
-            found_query = true;
-            active_queries[i].num_images_rcvd++;
-            if( TOPK_QUERY_CLIENT_DEBUG )
-            {
-		  	      std::cout<<"Node " << GetNode()->GetId() << " received return packet number " << tag.image_num << "\n\tso far, got " << active_queries[i].num_images_rcvd << "/" <<
-                         active_queries[i].num_images_rqstd << " of query " << active_queries[i].id << "\n";
-            }
-          }
-        } 
-        if( !found_query )
-        {
-          num_packets_rcvd_late++;
-        }
-      }
-      else
-      {
-        std::cout << "ERROR:  In TopkQueryClient::HandleRead() - Received packet with no TopkQueryTag\n";
-      }
       if (InetSocketAddress::IsMatchingType (from))
-      {
-        if( TOPK_QUERY_CLIENT_DEBUG )
         {
-          std::cout<< "At time " << Simulator::Now ().GetSeconds () << "s client received " << packet->GetSize () << " bytes from " <<
-                     InetSocketAddress::ConvertFrom (from).GetIpv4 () << " port " <<
-                     InetSocketAddress::ConvertFrom (from).GetPort () << "\n";
+          if( QOI_QUERY_FLOOD_CLIENT_DEBUG )
+          {
+            std::cout<< "At time " << Simulator::Now ().GetSeconds () << "s client received " << packet->GetSize () << " bytes from " <<
+                       InetSocketAddress::ConvertFrom (from).GetIpv4 () << " port " <<
+                       InetSocketAddress::ConvertFrom (from).GetPort () << "\n";
+          }
         }
-      }
     }
 }
-
-void
-TopkQueryClient::CheckQuery( uint16_t id )
-{
-
-  if( TOPK_QUERY_CLIENT_DEBUG )
-  {
-    std::cout<<"In TopkQueryClient::CheckQuery() at time " << Simulator::Now().GetSeconds() << "\n";
-    std::cout<<"\tchecking query with id = " << id << "\n";
-  }
-
-  bool found_query = false;
-  // check query with id to see if it received enough images
-  for( uint16_t i = 0; i < active_queries.size(); i++ )
-  {
-    if( active_queries[i].id == id )
-    {
-      found_query = true;
-      if( TOPK_QUERY_CLIENT_DEBUG )
-      {
-       std::cout<<"\tfound the query; received " << active_queries[i].num_images_rcvd << " / " << active_queries[i].num_images_rqstd << " images\n";
-      }
-      double perc_rcvd = (double)active_queries[i].num_images_rcvd/(double)active_queries[i].num_images_rqstd;
-      //if( active_queries[i].num_images_rcvd >= active_queries[i].num_images_rqstd )
-      if( perc_rcvd >= 0.9 ) // consider satisfied if we get 90% of the requested number of images
-      {
-        num_queries_satisfied++;
-      }
-
-      if( active_queries[i].num_images_rcvd == 0 )
-      {
-        num_queries_unanswered++;
-      }
-
-      // either way, remove it from the list of active queries
-      active_queries.erase(active_queries.begin() + i);
-    }
-  }
-  
-  if( !found_query )
-  {
-    std::cout<<"ERROR:  Node " << GetNode()->GetId() << " did not find matching query with id = " << id << " at time " << Simulator::Now().GetSeconds() << "\n";
-  }
-
-  return;
-}
-
-void 
-TopkQueryClient::PrintStats()
-{
-  char buf[1024];
-  FILE *stats_fd;
-
-  sprintf(buf, "%s/TopkQueryClientStats.csv", DataFilePath.c_str() );
-  stats_fd = fopen(buf, "a");
-  if( stats_fd == NULL )
-  {
-    std::cout << "Error opening stats file: " << buf << "\n";
-    return;
-  }
-  
-  if( TOPK_QUERY_CLIENT_DEBUG )
-  {
-    std::cout<< "Printing Stats to " << buf << "....at time " << Simulator::Now().GetSeconds() << "\n";
-  }
-
-
-                   // 1   2   3   4   5   6   7      8     9   10  11  12  13   14
-  fprintf(stats_fd, "%i, %i, %i, %i, %i, %i, %.1f, %.2f, %.1f, %i, %i, %i, %i, %.2f\n",
-    GetNode()->GetId(), // 1 i 
-    num_nodes, // 2 i
-    num_queries_satisfied, // 3 i
-    num_queries_issued, // 4 i
-    num_packets_rcvd, // 5 i
-    image_size_bytes, // 6 i
-    run_time.GetSeconds(), // 7 f
-    timeliness.GetSeconds(), // 8 f
-    sum_similarity, // 9 f
-    run_seed, // 10 i
-    num_runs, // 11 i
-    num_queries_unanswered, // 12 i
-    num_packets_rcvd_late,  // 13 i
-    (double)num_queries_satisfied/(double)num_queries_issued // 14 f
-  );
-
-  fclose(stats_fd);
-}
-
 
 } // Namespace ns3

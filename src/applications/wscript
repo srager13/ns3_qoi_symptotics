@@ -19,6 +19,8 @@ def build(bld):
         'model/udp-echo-server.cc',
         'model/topk-query-client.cc',
         'model/topk-query-server.cc',
+        'model/qoi-query-flood-client.cc',
+        'model/qoi-query-flood-server.cc',
         'model/v4ping.cc',
         'model/application-packet-probe.cc',
         'helper/bulk-send-helper.cc',
@@ -28,6 +30,7 @@ def build(bld):
         'helper/udp-client-server-helper.cc',
         'helper/udp-echo-helper.cc',
         'helper/topk-query-helper.cc',
+        'helper/qoi-query-flood-helper.cc',
         'helper/v4ping-helper.cc',
         'helper/radvd-helper.cc',
         ]
@@ -56,6 +59,8 @@ def build(bld):
         'model/udp-echo-server.h',
         'model/topk-query-client.h',
         'model/topk-query-server.h',
+        'model/qoi-query-flood-client.h',
+        'model/qoi-query-flood-server.h',
         'model/v4ping.h',
         'model/application-packet-probe.h',
         'helper/bulk-send-helper.h',
@@ -65,6 +70,7 @@ def build(bld):
         'helper/udp-client-server-helper.h',
         'helper/udp-echo-helper.h',
         'helper/topk-query-helper.h',
+        'helper/qoi-query-flood-helper.h',
         'helper/v4ping-helper.h',
         'helper/radvd-helper.h',
         ]
