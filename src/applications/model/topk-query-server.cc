@@ -30,6 +30,14 @@
 #include "ns3/socket-factory.h"
 #include "ns3/packet.h"
 #include "ns3/uinteger.h"
+#include "ns3/arp-l3-protocol.h"
+#include "ns3/arp-cache.h"
+#include "ns3/arp-header.h"
+#include "ns3/node-list.h"
+#include "ns3/ipv4-l3-protocol.h"
+#include "ns3/ipv4-interface.h"
+#include "ns3/object-vector.h"
+#include "ns3/pointer.h"
 
 #include "topk-query-server.h"
 #include "topk-query-client.h"
@@ -53,6 +61,10 @@ TopkQueryServer::GetTypeId (void)
                    UintegerValue (2000000),
                    MakeUintegerAccessor (&TopkQueryServer::image_size_bytes),
                    MakeUintegerChecker<uint64_t> ())
+    .AddAttribute ("NumNodes", ".",
+                   UintegerValue (9),
+                   MakeUintegerAccessor (&TopkQueryServer::num_nodes),
+                   MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("DelayPadding", "Delay time in seconds that server waits after sending each image to prevent overloading socket.",
                    DoubleValue(0.1),
                    MakeDoubleAccessor(&TopkQueryServer::delay_padding),
@@ -71,7 +83,6 @@ TopkQueryServer::TopkQueryServer ():
 TopkQueryServer::~TopkQueryServer()
 {
   NS_LOG_FUNCTION (this);
-  m_socket = 0;
 }
 
 void
@@ -85,37 +96,36 @@ void
 TopkQueryServer::StartApplication (void)
 {
   NS_LOG_FUNCTION (this);
-	if( TOPK_SERVER_SOCKET_DEBUG )
+	if( TOPK_QUERY_SERVER_DEBUG )
 	{
 		std::cout<< "Node " << GetNode()->GetId() << " in TopkQueryServer::StartApplication at " << Simulator::Now().GetSeconds() << "\n";
 	}
+  for( int i = 0; i < num_nodes; i++ )
+  {
+    TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
+    Ptr<Socket> sock = Socket::CreateSocket (GetNode (), tid);
+    m_socket.push_back(sock);
+    //InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), m_port);
+    //m_socket[i]->Bind (local);
+    Ipv4Address ipv4 = TopkQueryClient::GetNodeAddress(i,num_nodes);
+  //Ptr<Ipv4> ipv4 = NodeList::GetNode(i)->GetObject<Ipv4>();
+  //Ipv4InterfaceAddress iaddr = ipv4->GetAddress(1,0);
+  //Ipv4Address ipv4 = iaddr.GetLocal();
 
-  if (m_socket == 0)
+    //std::cout<<"address returned from GetNodeAddress("<<i<<","<<num_nodes<<") = " << ipv4 << "\n";
+
+    if( Ipv4Address::IsMatchingType(ipv4) == true )
     {
-      TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
-      m_socket = Socket::CreateSocket (GetNode (), tid);
-      InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), m_port);
-      m_socket->Bind (local);
-      if (addressUtils::IsMulticast (m_local))
-        {
-					//if( TOPK_SERVER_SOCKET_DEBUG )
-					{
-						std::cout<< "Socket is being set up for multicast\n";
-					}
-          Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket> (m_socket);
-          if (udpSocket)
-            {
-              // equivalent to setsockopt (MCAST_JOIN_GROUP)
-              udpSocket->MulticastJoinGroup (0, m_local);
-            }
-          else
-            {
-              NS_FATAL_ERROR ("Error: Failed to join multicast group");
-            }
-        }
+      //std::cout<<"\taddress is matching type to Ipv4, connecting to port " << m_port << "\n";
+      m_socket[i]->Bind ();
+      m_socket[i]->Connect (InetSocketAddress (Ipv4Address::ConvertFrom(ipv4), m_port));
     }
+  
+    m_socket[i]->SetRecvCallback (MakeCallback (&TopkQueryServer::HandleRead, this));
+  }
 
-  m_socket->SetRecvCallback (MakeCallback (&TopkQueryServer::HandleRead, this));
+  PopulateArpCache();
+
 }
 
 void 
@@ -123,12 +133,37 @@ TopkQueryServer::StopApplication ()
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_socket != 0) 
+  for( int i = 0; i < num_nodes; i++ )
+  {
+  if (m_socket[i] != 0) 
     {
-      m_socket->Close ();
-      m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+      m_socket[i]->Close ();
+      m_socket[i]->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
     }
+  }
   Simulator::Cancel(m_sendEvent);
+}
+
+void
+TopkQueryServer::ReceiveQuery( uint16_t node_from, uint16_t query_id, uint16_t num_images_rqstd )
+{
+  if( TOPK_QUERY_SERVER_DEBUG )
+  {
+    std::cout<< "Node " << GetNode()->GetId() << "'s server in ReceiveQuery: \n" <<
+            "\tquery from node " << node_from << "\n" << 
+            "\tquery_id = " << query_id << "\n" << 
+            "\tnum_images_rqstd = " << num_images_rqstd << "\n";
+  }
+
+
+  if( TOPK_QUERY_SERVER_DEBUG )
+  {
+    std::cout<<"Server (Node " << GetNode()->GetId() << ") at time " << Simulator::Now().GetSeconds() << " sending " << num_images_rqstd <<" packets from server to " << node_from <<". (delay_padding = " << delay_padding << ")\n";
+  }
+
+  //Time delay = NanoSeconds(10); 
+  Time delay = Seconds(0);
+  Simulator::Schedule( delay, &TopkQueryServer::ScheduleTrx, this, node_from, num_images_rqstd, query_id ); 
 }
 
 void 
@@ -147,68 +182,95 @@ TopkQueryServer::HandleRead (Ptr<Socket> socket)
                        InetSocketAddress::ConvertFrom (from).GetPort ());
         }
 
-      int num_images_rqstd = 0, query_id = -1;
-      TopkQueryTag tag( -1, -1, 0 );
-      if( packet->RemovePacketTag(tag) )
-      {
-        num_images_rqstd = tag.num_images_rqstd;
-        query_id = tag.query_id;
-      }
-
-      if( TOPK_QUERY_SERVER_DEBUG )
-      {
-        std::cout<<"Server (Node " << GetNode()->GetId() << ") at time " << Simulator::Now().GetSeconds() << " sending " << num_images_rqstd <<" packets from server to " << from <<". (delay_padding = " << delay_padding << ")\n";
-      }
-       
-      Time delay = NanoSeconds(10); 
-      Simulator::Schedule( delay, &TopkQueryServer::ScheduleTrx, this, from, num_images_rqstd, query_id ); 
     }
 }
 
 void
-TopkQueryServer::ScheduleTrx ( Address from, int num_images_rqstd, int query_id)
+TopkQueryServer::ScheduleTrx ( uint16_t from, int num_images_rqstd, int query_id)
 {
+  if( TOPK_QUERY_SERVER_DEBUG )
+  {
+    std::cout<<"\tNode " << GetNode()->GetId() << " in ScheduleTrx...query from: " << from <<"\n";
+  }
+  
   for( int i = 0; i < num_images_rqstd; i++ )
   {
-    //Time delay = Seconds(i*(((image_size_bytes*8.0)/2000000.0)+delay_padding));
-    double bit_rate = 2000000.0/8.0;
+    double bit_rate = 2000000.0;
+    //double bit_rate = 2000000.0/8.0;
     double num_bits = image_size_bytes*8.0;
     Time delay = Seconds( i * ( (num_bits/bit_rate) + 0.00) );
-    //Time delay = Seconds(0.1*i);
     Simulator::Schedule( delay, &TopkQueryServer::SendPacket, this, from, i+1, num_images_rqstd, query_id ); 
-    //Simulator::Schedule( delay, &TopkQueryServer::SendPacket, this, from, i, num_images_rqstd, query_id ); 
-    //Simulator::Schedule( delay, &TopkQueryServer::SendPacket, this, socket, from, i, num_images_rqstd, query_id ); 
   }
 }
   
 void
-//TopkQueryServer::SendPacket (Ptr<Socket> socket, Address from, int packetNum, int num_images_rqstd, int query_id)
-TopkQueryServer::SendPacket ( Address from, int packetNum, int num_images_rqstd, int query_id)
+TopkQueryServer::SendPacket ( uint16_t from, int packetNum, int num_images_rqstd, int query_id)
 {
-//  NS_ASSERT(m_sendEvent.IsExpired());
+  if( TOPK_QUERY_SERVER_DEBUG )
+  {
+    std::cout<<"\tNode " << GetNode()->GetId() << " in SendPacket...packetNum = " << packetNum <<", client = " << from << "\n";
+  }
+
   Ptr<Packet> p = Create<Packet>(image_size_bytes);
 
-  TopkQueryTag tag( query_id, num_images_rqstd, packetNum ); 
+  TopkQueryTag tag( query_id, num_images_rqstd, packetNum, GetNode()->GetId() ); 
   p->AddPacketTag(tag);
-  //int bytes_sent = socket->SendTo (p, 0, from) < 0;
-  int bytes_sent = m_socket->SendTo (p, 0, from) < 0;
+  int bytes_sent = m_socket[from]->Send (p);
   if( bytes_sent < 0 )
   {
     std::cout<< "ERROR: sending packet " << packetNum << "from server failed at time " << Simulator::Now().GetSeconds() << "\n";
   }
   else
   {
-    if (InetSocketAddress::IsMatchingType (from))
+    if( TOPK_QUERY_SERVER_DEBUG )
     {
-      if( TOPK_QUERY_SERVER_DEBUG )
-      {
-        std::cout<<"At time " << Simulator::Now ().GetSeconds () << "s server (Node " << GetNode()->GetId() << ") sent packet/image " << packetNum << " ("<< bytes_sent << " bytes) to " <<
-                   InetSocketAddress::ConvertFrom (from).GetIpv4 () << " port " <<
-                   InetSocketAddress::ConvertFrom (from).GetPort () << "\n";
-      }
+      std::cout<<"At time " << Simulator::Now ().GetSeconds () << "s server (Node " << GetNode()->GetId() << ") sent packet/image " << packetNum << " ("<< bytes_sent << " bytes) to " << from << "\n";
     }
   }
 }
 
+void
+TopkQueryServer::PopulateArpCache ()
+{
+  Ptr<ArpCache> arp = CreateObject<ArpCache> ();
+  arp->SetAliveTimeout (Seconds(3600 * 24 * 365));
+  for (NodeList::Iterator i = NodeList::Begin(); i != NodeList::End(); ++i)
+  {
+    Ptr<Ipv4L3Protocol> ip = (*i)->GetObject<Ipv4L3Protocol> ();
+    NS_ASSERT(ip !=0);
+    ObjectVectorValue interfaces;
+    ip->GetAttribute("InterfaceList", interfaces);
+    for(ObjectVectorValue::Iterator j = interfaces.Begin(); j != interfaces.End (); j++)
+    {
+      Ptr<Ipv4Interface> ipIface = (j->second)->GetObject<Ipv4Interface> ();
+      NS_ASSERT(ipIface != 0);
+      Ptr<NetDevice> device = ipIface->GetDevice();
+      NS_ASSERT(device != 0);
+      Mac48Address addr = Mac48Address::ConvertFrom(device->GetAddress ());
+      for(uint32_t k = 0; k < ipIface->GetNAddresses (); k ++)
+      {
+        Ipv4Address ipAddr = ipIface->GetAddress (k).GetLocal();
+        if(ipAddr == Ipv4Address::GetLoopback())
+          continue;
+        ArpCache::Entry * entry = arp->Add(ipAddr);
+        entry->MarkWaitReply(0);
+        entry->MarkAlive(addr);
+      }
+    }
+  }
+  for (NodeList::Iterator i = NodeList::Begin(); i != NodeList::End(); ++i)
+  {
+    Ptr<Ipv4L3Protocol> ip = (*i)->GetObject<Ipv4L3Protocol> ();
+    NS_ASSERT(ip !=0);
+    ObjectVectorValue interfaces;
+    ip->GetAttribute("InterfaceList", interfaces);
+    for(ObjectVectorValue::Iterator j = interfaces.Begin(); j !=
+interfaces.End (); j ++)
+    {
+      Ptr<Ipv4Interface> ipIface = (j->second)->GetObject<Ipv4Interface> ();
+      ipIface->SetAttribute("ArpCache", PointerValue(arp));
+    }
+  }
+}
 
 } // Namespace ns3

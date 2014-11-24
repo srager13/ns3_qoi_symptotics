@@ -78,7 +78,7 @@
 #include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/ipv4-list-routing-helper.h"
 #include "ns3/olsr-helper.h"
-#include "ns3/topk-query-helper.h"
+#include "ns3/qoi-query-flood-helper.h"
 #include "ns3/dsdv-helper.h"
 #include "ns3/applications-module.h"
 #include "ns3/tdma-helper.h"
@@ -89,7 +89,7 @@
 #include <vector>
 #include <string>
 
-NS_LOG_COMPONENT_DEFINE ("TopkQueryExample");
+NS_LOG_COMPONENT_DEFINE ("QoiQueryFloodExample");
 
 using namespace ns3;
 
@@ -106,11 +106,12 @@ int main (int argc, char *argv[])
   uint32_t sourceNode = 24;
   double interval = 1.0; // seconds
   double sumSimilarity = 10.0;
+  int packetsPerImage = 1;
   double timeliness = 5.0;
   bool verbose = false;
   bool tracing = false;
 	uint16_t numReturnImages = 10;
-	uint64_t imageSizeBytes = 888;
+	int imageSizeBytes = 888;
   double delayPadding;
   std::string dataFilePath;
   std::string sumSimFilename;
@@ -129,6 +130,7 @@ int main (int argc, char *argv[])
   cmd.AddValue ("numPackets", "number of packets generated", numPackets);
   cmd.AddValue ("interval", "interval (seconds) between packets", interval);
   cmd.AddValue ("sumSimilarity", "Sum similarity requirement. Translated into number of images as defined in SumSimRequirements.csv.", sumSimilarity);
+  cmd.AddValue ("packetsPerImage", "Number of packets needed to send for each image required.", packetsPerImage);
   cmd.AddValue ("timeliness", "Timeliness requirement of queries", timeliness);
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
   cmd.AddValue ("tracing", "turn on ascii and pcap tracing", tracing);
@@ -155,12 +157,12 @@ int main (int argc, char *argv[])
   Time interPacketInterval = Seconds (interval);
 
   // disable fragmentation for frames below 2200 bytes
-  //Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
+  Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
   // turn off RTS/CTS for frames below 2200 bytes
-  //Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("2200"));
+  Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("2200"));
   // Fix non-unicast data rate to be the same as that of unicast
-  //Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode", 
-   //                   StringValue (phyMode));
+  Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode", 
+                      StringValue (phyMode));
 
   NodeContainer c;
   c.Create (numNodes);
@@ -182,10 +184,9 @@ int main (int argc, char *argv[])
 //    TdmaHelper tdma =  = TdmaHelper (c.GetN (), c.GetN ()); // in this case selected, numSlots = nodes
 
 	TdmaControllerHelper controller;
-	controller.Set ("DataRate", DataRateValue (DataRate("2000000b/s"))); // 2Mbps
+	controller.Set ("DataRate", DataRateValue (DataRate("2000000b/s")));
 	//controller.Set ("SlotTime", TimeValue (MicroSeconds (1100)));
-  double slot_time = ((imageSizeBytes+45)*8.0)/2000000.0;
-  controller.Set("SlotTime", TimeValue(Seconds(slot_time))); // time to transmit one 1400 byte packet at 2Mbps is 5600 uSec
+  controller.Set("SlotTime", TimeValue(MicroSeconds(5800))); // time to transmit one 1400 byte packet at 2Mbps is 5600 uSec
 	controller.Set ("GaurdTime", TimeValue (MicroSeconds (0)));
 	controller.Set ("InterFrameTime", TimeValue (MicroSeconds (0)));
 	tdma.SetTdmaControllerHelper (controller);
@@ -311,7 +312,7 @@ int main (int argc, char *argv[])
         }
         else 
         {
-          std::cout<<"ERROR:  Need to account for addresses higher than 1536 nodes (in scratch/topk-query-static-routing.cc)\n";
+          std::cout<<"ERROR:  Need to account for addresses higher than 1536 nodes (in scratch/qoi-query-flood.cc)\n";
           exit(-1);
         }
         sprintf(dest, "10.1.%d.%d", secondByte, firstByte);
@@ -453,60 +454,61 @@ int main (int argc, char *argv[])
     {
 			AsciiTraceHelper ascii;
 			std::ostringstream oss;
-			oss << "topk-query_" << numNodes << "_Nodes.tr";
+			oss << "qoi-query-flood_" << numNodes << "_Nodes.tr";
 			std::string tr_name = oss.str();
  
 			Ptr<OutputStreamWrapper> stream = ascii.CreateFileStream (tr_name);
 			tdma.EnableAsciiAll (stream);
 
-      //wifiPhy.EnablePcap ("topk-query", devices);
+      //wifiPhy.EnablePcap ("qoi-query-flood", devices);
       // Trace routing tables
-      //Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("topk-query.routes", std::ios::out);
+      //Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("qoi-query-flood.routes", std::ios::out);
       //olsr.PrintRoutingTableAllEvery (Seconds (2), routingStream);
 
       // To do-- enable an IP-level trace that shows forwarding events only
     }
 
-  if( runTime < 100.0 )
-  {
-    std::cout<<"ERROR:  Applications stop running 100 seconds before simulation end, so run time needs to be longer than 100.\n";
-    exit(-1);
-  }
 
   // Output what we are doing
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with grid distance " << distance);
 //
-// Create a TopkQueryServer application on node one.
+// Create a QoiQueryFloodServer application on node one.
 //
+  uint32_t num_nodes = numNodes;
   uint16_t port = 9;  // well-known echo port number
-  TopkQueryServerHelper server (port);
-	server.SetAttribute("ImageSizeBytes", UintegerValue(imageSizeBytes));
-	server.SetAttribute("NumNodes", UintegerValue(numNodes));
-  server.SetAttribute("DelayPadding", DoubleValue(delayPadding));
+  QoiQueryFloodServerHelper server (port, num_nodes);
+  server.SetAttribute ("SumSimilarity", DoubleValue (sumSimilarity));
+  server.SetAttribute ("Timeliness", TimeValue (Seconds(timeliness)));
+  server.SetAttribute ("DataFilePath", StringValue (dataFilePath));
+  server.SetAttribute ("SumSimFilename", StringValue (sumSimFilename));
+	server.SetAttribute ("ImageSizeBytes", IntegerValue(imageSizeBytes));
+  server.SetAttribute ("RunTime", TimeValue (Seconds(runTime)));
+  server.SetAttribute ("RunSeed", UintegerValue (runSeed));
+  server.SetAttribute ("NumRuns", UintegerValue (numRuns));
+  server.SetAttribute ("DelayPadding", DoubleValue(delayPadding));
   ApplicationContainer apps = server.Install (c);
   apps.Start (Seconds (1.0));
-  apps.Stop (Seconds (runTime-100.0));
+  apps.Stop (Seconds (runTime));
 
 //
-// Create a TopkQueryClient application to send UDP datagrams from node zero to
+// Create a QoiQueryFloodClient application to send UDP datagrams from node zero to
 // node one.
 //
 //  Time interPacketInterval = Seconds (1.);
-  uint32_t num_nodes = numNodes;
-  TopkQueryClientHelper client (port, num_nodes);
+  QoiQueryFloodClientHelper client (port, num_nodes);
   client.SetAttribute ("Interval", TimeValue (interPacketInterval));
   client.SetAttribute ("SumSimilarity", DoubleValue (sumSimilarity));
+  client.SetAttribute ("PacketSize", UintegerValue (packetSize));
   client.SetAttribute ("Timeliness", TimeValue (Seconds(timeliness)));
-  client.SetAttribute ("DataFilePath", StringValue (dataFilePath));
   client.SetAttribute ("SumSimFilename", StringValue (sumSimFilename));
-  client.SetAttribute ("ImageSizeBytes", UintegerValue (imageSizeBytes));
+  client.SetAttribute ("ImageSizeBytes", IntegerValue (imageSizeBytes));
   client.SetAttribute ("RunTime", TimeValue (Seconds(runTime)));
   client.SetAttribute ("RunSeed", UintegerValue (runSeed));
   client.SetAttribute ("NumRuns", UintegerValue (numRuns));
   client.SetAttribute ("NumPacketsPerImage", IntegerValue (numPacketsPerImage));
   apps = client.Install(c);
   apps.Start (Seconds (2.0));
-  apps.Stop (Seconds (runTime-100.0));
+  apps.Stop (Seconds (runTime));
 
 /*
   Ptr<FlowMonitor> flowMonitor;
@@ -515,11 +517,10 @@ int main (int argc, char *argv[])
 */
 
   std::cout<<"Running for " << runTime << " seconds\n";
-  std::cout<<"Sum similarity = " << sumSimilarity << "\n";
 
   Simulator::Stop (Seconds (runTime));
   Simulator::Run ();
-  //flowMonitor->SerializeToXmlFile("Topk-query-flow-monitor.xml", true, true);
+  //flowMonitor->SerializeToXmlFile("Qoi-query-flood-flow-monitor.xml", true, true);
   Simulator::Destroy ();
 
   return 0;

@@ -112,24 +112,6 @@ TopkQueryClientHelper::SetAttribute (
   m_factory.Set (name, value);
 }
 
-void
-TopkQueryClientHelper::SetFill (Ptr<Application> app, std::string fill)
-{
-  app->GetObject<TopkQueryClient>()->SetFill (fill);
-}
-
-void
-TopkQueryClientHelper::SetFill (Ptr<Application> app, uint8_t fill, uint32_t dataLength)
-{
-  app->GetObject<TopkQueryClient>()->SetFill (fill, dataLength);
-}
-
-void
-TopkQueryClientHelper::SetFill (Ptr<Application> app, uint8_t *fill, uint32_t fillLength, uint32_t dataLength)
-{
-  app->GetObject<TopkQueryClient>()->SetFill (fill, fillLength, dataLength);
-}
-
 ApplicationContainer
 TopkQueryClientHelper::Install (Ptr<Node> node) const
 {

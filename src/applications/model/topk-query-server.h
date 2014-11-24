@@ -25,7 +25,6 @@
 #include "ns3/address.h"
 
 #define TOPK_QUERY_SERVER_DEBUG 0
-#define TOPK_SERVER_SOCKET_DEBUG 0
 
 namespace ns3 {
 
@@ -54,6 +53,7 @@ public:
   TopkQueryServer ();
   virtual ~TopkQueryServer ();
   
+  void ReceiveQuery( uint16_t node_from, uint16_t query_id, uint16_t num_images_rqstd );
 
  // uint64_t image_size_bytes; // size in bytes of each image
 
@@ -65,25 +65,21 @@ private:
   virtual void StartApplication (void);
   virtual void StopApplication (void);
 
-  /**
-   * \brief Handle a packet reception.
-   *
-   * This function is called by lower layers.
-   *
-   * \param socket the socket the packet was received to.
-   */
   void HandleRead (Ptr<Socket> socket);
 
-  void ScheduleTrx (Address from, int num_images_rqstd, int query_id); 
+  void ScheduleTrx (uint16_t from, int num_images_rqstd, int query_id); 
   //void SendPacket (Ptr<Socket> socket, Address from, int packetNum, int num_images_rqstd, int query_id); 
-  void SendPacket (Address from, int packetNum, int num_images_rqstd, int query_id); 
+  void SendPacket (uint16_t from, int packetNum, int num_images_rqstd, int query_id); 
+
+  void PopulateArpCache();
 
   EventId m_sendEvent;
 
   uint16_t m_port; //!< Port on which we listen for incoming packets.
   uint64_t image_size_bytes; // size in bytes of each image
+  uint16_t num_nodes;
   double delay_padding; // delay time (in seconds) that server waits after sending each image to ensure no loss
-  Ptr<Socket> m_socket; //!< IPv4 Socket
+  std::vector<Ptr<Socket> > m_socket; //!< Socket
   //Ptr<Socket> m_socket6; //!< IPv6 Socket
   Address m_local; //!< local multicast address
 };
