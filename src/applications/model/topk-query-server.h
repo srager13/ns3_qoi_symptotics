@@ -55,7 +55,6 @@ public:
   
   void ReceiveQuery( uint16_t node_from, uint16_t query_id, uint16_t num_images_rqstd );
 
- // uint64_t image_size_bytes; // size in bytes of each image
 
 protected:
   virtual void DoDispose (void);
@@ -76,12 +75,15 @@ private:
   EventId m_sendEvent;
 
   uint16_t m_port; //!< Port on which we listen for incoming packets.
-  uint64_t image_size_bytes; // size in bytes of each image
+  uint16_t image_size_kbytes; // size in bytes of each image
+  uint16_t packet_size_bytes; // size in bytes of each image
   uint16_t num_nodes;
-  double delay_padding; // delay time (in seconds) that server waits after sending each image to ensure no loss
+  double delay_padding; // delay time (in seconds) that server waits after sending each image to ensure no loss 
+  double channel_rate; // in Mbps
   std::vector<Ptr<Socket> > m_socket; //!< Socket
   //Ptr<Socket> m_socket6; //!< IPv6 Socket
   Address m_local; //!< local multicast address
+  Time timeliness;
 };
 
 } // namespace ns3

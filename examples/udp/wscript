@@ -3,5 +3,3 @@
 def build(bld):
     obj = bld.create_ns3_program('udp-echo', ['csma', 'internet', 'applications'])
     obj.source = 'udp-echo.cc'
-    obj = bld.create_ns3_program('topk-query', ['csma', 'internet', 'applications'])
-    obj.source = 'topk-query.cc'

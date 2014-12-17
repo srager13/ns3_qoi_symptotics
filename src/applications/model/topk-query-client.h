@@ -32,8 +32,9 @@
 #include <string>
 #include <vector>
 
+//#define SMALL_QUEUES 0
 #define TOPK_QUERY_CLIENT_DEBUG 0
-#define ONE_FLOW_DEBUG 1
+#define ALL_DEST 0
 
 namespace ns3 {
 
@@ -49,12 +50,49 @@ struct TopkQuery
   Time start_time;
   Time deadline;
 };
+struct QueryDeadlineTag : public Tag
+{
+  double deadline;
+
+  QueryDeadlineTag( double dl ) : deadline(dl) {}
+  
+  static TypeId GetTypeId()
+  {
+    static TypeId tid = TypeId("ns3::QueryDeadlineTag").SetParent<Tag>();
+    return tid;
+  }
+
+  TypeId GetInstanceTypeId() const
+  {
+    return GetTypeId();
+  }
+  
+  uint32_t GetSerializedSize () const
+  {
+    return sizeof(double);
+  }
+  void Serialize (TagBuffer i) const
+  {
+    i.WriteDouble (deadline);
+  }
+  
+  void Deserialize (TagBuffer i) 
+  {
+    deadline = i.ReadDouble ();
+  }
+    
+  void Print (std::ostream &os) const
+  {
+    os << "QueryDeadlineTag: [deadline] = [" << deadline << "]\n";
+  }
+
+};
 
 struct TopkQueryTag : public Tag
 {
   int query_id, num_images_rqstd, image_num, sending_node;
 
-  TopkQueryTag ( int new_query_id = -1, int new_num_images_rqstd = -1, int new_image_num = 0, int sn = 0) : Tag(), query_id(new_query_id), num_images_rqstd(new_num_images_rqstd), image_num(new_image_num), sending_node(sn) {}
+  TopkQueryTag ( int new_query_id = -1, int new_num_images_rqstd = -1, int new_image_num = 0, int sn = 0 ) : Tag(), query_id(new_query_id), num_images_rqstd(new_num_images_rqstd), image_num(new_image_num), sending_node(sn) {}
 
   static TypeId GetTypeId()
   {
@@ -155,9 +193,29 @@ public:
     {
       secondByte = second_byte_start + (uint8_t)5;
     }
+    else if( node_id < 1791 )
+    {
+      secondByte = second_byte_start + (uint8_t)6;
+    }
+    else if( node_id < 2047 )
+    {
+      secondByte = second_byte_start + (uint8_t)7;
+    }
+    else if( node_id < 2303 )
+    {
+      secondByte = second_byte_start + (uint8_t)8;
+    }
+    else if( node_id < 2559 )
+    {
+      secondByte = second_byte_start + (uint8_t)9;
+    }
+    else if( node_id < 2815 )
+    {
+      secondByte = second_byte_start + (uint8_t)10;
+    }
     else
     {
-      std::cout<<"ERROR:  Need to account for addresses higher than 1536 nodes (in topk-query-client.cc)\n";
+      std::cout<<"ERROR:  Need to account for addresses higher than 2815 nodes (in topk-query-client.h)\n";
       exit(-1);
     }
 
@@ -201,7 +259,11 @@ public:
 
   void SetNumNodes( uint16_t numNodes ) { num_nodes = numNodes; };
 
+  void ScheduleTransmit (Time dt);
+
   void IncrementNumPacketsDropped();
+
+  void UpdateQueueStats( double avg_q_size, double sum_num_flows, double num_times_counted );
 
 protected:
   virtual void DoDispose (void);
@@ -217,7 +279,6 @@ private:
    * \brief Schedule the next packet transmission
    * \param dt time interval between packets.
    */
-  void ScheduleTransmit (Time dt);
   /**
    * \brief Send a packet
    */
@@ -233,6 +294,7 @@ private:
   void HandleRead (Ptr<Socket> socket);
 
   void CheckQuery ( uint16_t id, uint16_t server ); 
+  void CheckForTimedOutQueries ( ); 
   void PrintStats();
 
   void UpdateQueryIds ()
@@ -247,7 +309,6 @@ private:
     }
   }
 
-  Time m_interval; //!< Packet inter-send time
   double sum_similarity;
   uint32_t m_size; //!< Size of the sent packet
 
@@ -270,11 +331,14 @@ private:
   uint32_t num_packets_rcvd_late;
   uint32_t num_packets_rcvd;
 
-  uint16_t image_size_bytes;
+  uint16_t image_size_kbytes;
+  uint16_t packet_size_bytes;
 	
   int avg_num_packets_rqrd;
 	Time timeliness;
   Time run_time;
+  Time sum_extra_time;
+  Time sum_query_time;
   uint16_t run_seed;
   uint16_t num_runs;
   std::string DataFilePath;
@@ -284,6 +348,14 @@ private:
   std::vector<TopkQuery> active_queries;
   uint16_t query_ids;
   uint16_t num_packets_dropped;
+  // Queue stats:
+  double sum_number_flows;
+  double num_times_counted_flows;
+  double avg_queue_size;
+
+  double channel_rate;
+
+  bool one_flow;
 
   //Ptr<NormalRandomVariable> rand_interval;
   Ptr<ExponentialRandomVariable> rand_interval;

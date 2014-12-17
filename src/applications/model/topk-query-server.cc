@@ -57,10 +57,14 @@ TopkQueryServer::GetTypeId (void)
                    UintegerValue (9),
                    MakeUintegerAccessor (&TopkQueryServer::m_port),
                    MakeUintegerChecker<uint16_t> ())
-    .AddAttribute ("ImageSizeBytes", "Size of image (all assumed to be the same) in bytes.",
-                   UintegerValue (2000000),
-                   MakeUintegerAccessor (&TopkQueryServer::image_size_bytes),
-                   MakeUintegerChecker<uint64_t> ())
+    .AddAttribute ("ImageSizeKBytes", "Size of image (all assumed to be the same) in kilobytes.",
+                   UintegerValue (2000),
+                   MakeUintegerAccessor (&TopkQueryServer::image_size_kbytes),
+                   MakeUintegerChecker<uint16_t> ())
+    .AddAttribute ("PacketSizeBytes", "Size of packet (all assumed to be the same) in bytes.",
+                   UintegerValue (1450000),
+                   MakeUintegerAccessor (&TopkQueryServer::packet_size_bytes),
+                   MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("NumNodes", ".",
                    UintegerValue (9),
                    MakeUintegerAccessor (&TopkQueryServer::num_nodes),
@@ -69,6 +73,14 @@ TopkQueryServer::GetTypeId (void)
                    DoubleValue(0.1),
                    MakeDoubleAccessor(&TopkQueryServer::delay_padding),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("ChannelRate", "Rate of each channel (in Mbps).",
+                   DoubleValue(2.0),
+                   MakeDoubleAccessor(&TopkQueryServer::channel_rate),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("Timeliness", "Timeliness constraint for all queries.",
+                    TimeValue(Seconds(1.0)),
+                    MakeTimeAccessor (&TopkQueryServer::timeliness),
+                    MakeTimeChecker())
   ;
   return tid;
 }
@@ -147,9 +159,10 @@ TopkQueryServer::StopApplication ()
 void
 TopkQueryServer::ReceiveQuery( uint16_t node_from, uint16_t query_id, uint16_t num_images_rqstd )
 {
+  //std::cout<< GetNode()->GetId() << ", " << node_from << "\n";
   if( TOPK_QUERY_SERVER_DEBUG )
   {
-    std::cout<< "Node " << GetNode()->GetId() << "'s server in ReceiveQuery: \n" <<
+    std::cout<< "Node " << GetNode()->GetId() << "'s server in ReceiveQuery at time " << Simulator::Now().GetSeconds() << ": \n" <<
             "\tquery from node " << node_from << "\n" << 
             "\tquery_id = " << query_id << "\n" << 
             "\tnum_images_rqstd = " << num_images_rqstd << "\n";
@@ -193,14 +206,27 @@ TopkQueryServer::ScheduleTrx ( uint16_t from, int num_images_rqstd, int query_id
     std::cout<<"\tNode " << GetNode()->GetId() << " in ScheduleTrx...query from: " << from <<"\n";
   }
   
+  double bit_rate = channel_rate*1000000.0;
+  double num_bits = (packet_size_bytes+28)*8.0; // adding 28 for packet headers
+
+  // checking to make sure it's not more than even the first hop can handle
+  if( 3 * num_images_rqstd * (num_bits/bit_rate) > timeliness )
+  {
+    std::cout<<"ERROR: Not enough time for node to send packets (CF*K*Image_Size/channel_rate > timeliness) - in TopkQueryServer.cc\n";
+    exit(-1);
+  }
+  
   for( int i = 0; i < num_images_rqstd; i++ )
   {
-    double bit_rate = 2000000.0;
-    //double bit_rate = 2000000.0/8.0;
-    double num_bits = image_size_bytes*8.0;
-    Time delay = Seconds( i * ( (num_bits/bit_rate) + 0.00) );
+    Time delay = Seconds( 3 * i * ( (num_bits/bit_rate) + 0.00) );
     Simulator::Schedule( delay, &TopkQueryServer::SendPacket, this, from, i+1, num_images_rqstd, query_id ); 
   }
+
+/*
+  Time delay = Seconds( 3*num_images_rqstd*(num_bits/bit_rate) ); // 3 for Contention Factor (line net...grid should be 5)
+  Ptr<TopkQueryClient> clientPtr = NodeList::GetNode(from)->GetApplication(1)->GetObject<TopkQueryClient>();
+  clientPtr->ScheduleTransmit( delay );
+*/
 }
   
 void
@@ -208,17 +234,23 @@ TopkQueryServer::SendPacket ( uint16_t from, int packetNum, int num_images_rqstd
 {
   if( TOPK_QUERY_SERVER_DEBUG )
   {
-    std::cout<<"\tNode " << GetNode()->GetId() << " in SendPacket...packetNum = " << packetNum <<", client = " << from << "\n";
+    std::cout<<"\tNode " << GetNode()->GetId() << " in SendPacket...packetNum = " << packetNum <<", client = " << from << 
+                " at time " << Simulator::Now().GetSeconds() << "\n";
   }
 
-  Ptr<Packet> p = Create<Packet>(image_size_bytes);
+  Ptr<Packet> p = Create<Packet>(packet_size_bytes);
 
   TopkQueryTag tag( query_id, num_images_rqstd, packetNum, GetNode()->GetId() ); 
   p->AddPacketTag(tag);
+  QueryDeadlineTag dl_tag( Simulator::Now().GetSeconds()+timeliness.GetSeconds() );
+  p->AddPacketTag(dl_tag);
   int bytes_sent = m_socket[from]->Send (p);
   if( bytes_sent < 0 )
   {
-    std::cout<< "ERROR: sending packet " << packetNum << "from server failed at time " << Simulator::Now().GetSeconds() << "\n";
+    if( TOPK_QUERY_SERVER_DEBUG )
+    {
+      std::cout<< "ERROR: sending packet " << packetNum << "from server failed at time " << Simulator::Now().GetSeconds() << "\n";
+    }
   }
   else
   {

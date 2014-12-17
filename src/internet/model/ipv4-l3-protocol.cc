@@ -59,7 +59,7 @@ Ipv4L3Protocol::GetTypeId (void)
                    MakeUintegerAccessor (&Ipv4L3Protocol::m_defaultTos),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("DefaultTtl", "The TTL value set by default on all outgoing packets generated on this node.",
-                   UintegerValue (64),
+                   UintegerValue (10000),
                    MakeUintegerAccessor (&Ipv4L3Protocol::m_defaultTtl),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("FragmentExpirationTimeout",

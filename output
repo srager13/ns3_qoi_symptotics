@@ -1,0 +1,346 @@
+run time = 500
+Channel rate = 2000000b/s
+Running for 500 seconds
+Sum similarity = 3
+Node 1: Creating new flow at time 7.03887: 
+	sending_node = 0
+	query_id = 1
+Node 1: Creating new flow at time 7.05089: 
+	sending_node = 4
+	query_id = 1
+Node 1: Creating new flow at time 17.0111: 
+	sending_node = 0
+	query_id = 2
+Node 1: Creating new flow at time 17.0231: 
+	sending_node = 2
+	query_id = 2
+Node 1: Removing flow in CheckForTimedOutQueries, time = 17.5:
+	sending node = 0
+	query id = 1
+Node 1: Removing flow in CheckForTimedOutQueries, time = 18.5:
+	sending node = 4
+	query id = 1
+Node 1: Creating new flow at time 27.0134: 
+	sending_node = 2
+	query_id = 3
+Node 1: Removing flow in CheckForTimedOutQueries, time = 27.5:
+	sending node = 0
+	query id = 2
+Node 1: Removing flow in CheckForTimedOutQueries, time = 28.5:
+	sending node = 2
+	query id = 2
+Node 1: Creating new flow at time 37.0217: 
+	sending_node = 2
+	query_id = 4
+Node 1: Creating new flow at time 37.0277: 
+	sending_node = 0
+	query_id = 4
+Node 1: Removing flow in CheckForTimedOutQueries, time = 37.5:
+	sending node = 2
+	query id = 3
+Node 1: Creating new flow at time 47.012: 
+	sending_node = 2
+	query_id = 5
+Node 1: Creating new flow at time 47.018: 
+	sending_node = 0
+	query_id = 5
+Node 1: Removing flow in CheckForTimedOutQueries, time = 47.5:
+	sending node = 2
+	query id = 4
+Node 1: Removing flow in CheckForTimedOutQueries, time = 48.5:
+	sending node = 0
+	query id = 4
+Node 1: Creating new flow at time 57.0263: 
+	sending_node = 0
+	query_id = 6
+Node 1: Creating new flow at time 57.0564: 
+	sending_node = 4
+	query_id = 6
+Node 1: Removing flow in CheckForTimedOutQueries, time = 57.5:
+	sending node = 2
+	query id = 5
+Node 1: Removing flow in CheckForTimedOutQueries, time = 58.5:
+	sending node = 0
+	query id = 5
+Node 1: Creating new flow at time 67.0106: 
+	sending_node = 2
+	query_id = 7
+Node 1: Creating new flow at time 67.0166: 
+	sending_node = 0
+	query_id = 7
+Node 1: Removing flow in CheckForTimedOutQueries, time = 67.5:
+	sending node = 0
+	query id = 6
+Node 1: Removing flow in CheckForTimedOutQueries, time = 68.5:
+	sending node = 4
+	query id = 6
+Node 1: Creating new flow at time 77.0189: 
+	sending_node = 2
+	query_id = 8
+Node 1: Removing flow in CheckForTimedOutQueries, time = 77.5:
+	sending node = 2
+	query id = 7
+Node 1: Removing flow in CheckForTimedOutQueries, time = 78.5:
+	sending node = 0
+	query id = 7
+Node 1: Creating new flow at time 87.0333: 
+	sending_node = 0
+	query_id = 9
+Node 1: Creating new flow at time 87.0633: 
+	sending_node = 4
+	query_id = 9
+Node 1: Removing flow in CheckForTimedOutQueries, time = 87.5:
+	sending node = 2
+	query id = 8
+Node 1: Removing flow in CheckForTimedOutQueries, time = 97.5:
+	sending node = 0
+	query id = 9
+Node 1: Removing flow in CheckForTimedOutQueries, time = 98.5:
+	sending node = 4
+	query id = 9
+Node 1: Creating new flow at time 107.044: 
+	sending_node = 3
+	query_id = 11
+Node 1: Creating new flow at time 117.022: 
+	sending_node = 0
+	query_id = 12
+Node 1: Creating new flow at time 117.034: 
+	sending_node = 3
+	query_id = 12
+Node 1: Removing flow in CheckForTimedOutQueries, time = 117.5:
+	sending node = 3
+	query id = 11
+Node 1: Creating new flow at time 127.006: 
+	sending_node = 2
+	query_id = 13
+Node 1: Creating new flow at time 127.03: 
+	sending_node = 0
+	query_id = 13
+Node 1: Removing flow in CheckForTimedOutQueries, time = 127.5:
+	sending node = 0
+	query id = 12
+Node 1: Removing flow in CheckForTimedOutQueries, time = 128.5:
+	sending node = 3
+	query id = 12
+Node 1: Creating new flow at time 137.015: 
+	sending_node = 2
+	query_id = 14
+Node 1: Removing flow in CheckForTimedOutQueries, time = 137.5:
+	sending node = 2
+	query id = 13
+Node 1: Removing flow in CheckForTimedOutQueries, time = 138.5:
+	sending node = 0
+	query id = 13
+Node 1: Creating new flow at time 147.059: 
+	sending_node = 4
+	query_id = 15
+Node 1: Removing flow in CheckForTimedOutQueries, time = 147.5:
+	sending node = 2
+	query id = 14
+Node 1: Creating new flow at time 157.013: 
+	sending_node = 2
+	query_id = 16
+Node 1: Removing flow in CheckForTimedOutQueries, time = 157.5:
+	sending node = 4
+	query id = 15
+Node 1: Creating new flow at time 167.022: 
+	sending_node = 2
+	query_id = 17
+Node 1: Creating new flow at time 167.028: 
+	sending_node = 0
+	query_id = 17
+Node 1: Removing flow in CheckForTimedOutQueries, time = 167.5:
+	sending node = 2
+	query id = 16
+Node 1: Creating new flow at time 177.048: 
+	sending_node = 3
+	query_id = 18
+Node 1: Removing flow in CheckForTimedOutQueries, time = 177.5:
+	sending node = 2
+	query id = 17
+Node 1: Removing flow in CheckForTimedOutQueries, time = 178.5:
+	sending node = 0
+	query id = 17
+Node 1: Creating new flow at time 187.008: 
+	sending_node = 0
+	query_id = 19
+Node 1: Creating new flow at time 187.038: 
+	sending_node = 4
+	query_id = 19
+Node 1: Removing flow in CheckForTimedOutQueries, time = 187.5:
+	sending node = 3
+	query id = 18
+Node 1: Creating new flow at time 197.017: 
+	sending_node = 0
+	query_id = 20
+Node 1: Creating new flow at time 197.065: 
+	sending_node = 4
+	query_id = 20
+Node 1: Removing flow in CheckForTimedOutQueries, time = 197.5:
+	sending node = 0
+	query id = 19
+Node 1: Removing flow in CheckForTimedOutQueries, time = 198.5:
+	sending node = 4
+	query id = 19
+Node 1: Creating new flow at time 207.019: 
+	sending_node = 2
+	query_id = 21
+Node 1: Removing flow in CheckForTimedOutQueries, time = 207.5:
+	sending node = 0
+	query id = 20
+Node 1: Removing flow in CheckForTimedOutQueries, time = 208.5:
+	sending node = 4
+	query id = 20
+Node 1: Creating new flow at time 217.015: 
+	sending_node = 0
+	query_id = 22
+Node 1: Creating new flow at time 217.117: 
+	sending_node = 4
+	query_id = 22
+Node 1: Removing flow in CheckForTimedOutQueries, time = 217.5:
+	sending node = 2
+	query id = 21
+Node 1: Creating new flow at time 227.017: 
+	sending_node = 2
+	query_id = 23
+Node 1: Removing flow in CheckForTimedOutQueries, time = 227.5:
+	sending node = 0
+	query id = 22
+Node 1: Removing flow in CheckForTimedOutQueries, time = 228.5:
+	sending node = 4
+	query id = 22
+Node 1: Creating new flow at time 237.008: 
+	sending_node = 2
+	query_id = 24
+Node 1: Removing flow in CheckForTimedOutQueries, time = 237.5:
+	sending node = 2
+	query id = 23
+Node 1: Creating new flow at time 247.022: 
+	sending_node = 0
+	query_id = 25
+Node 1: Creating new flow at time 247.052: 
+	sending_node = 4
+	query_id = 25
+Node 1: Removing flow in CheckForTimedOutQueries, time = 247.5:
+	sending node = 2
+	query id = 24
+Node 1: Creating new flow at time 257.006: 
+	sending_node = 2
+	query_id = 26
+Node 1: Creating new flow at time 257.012: 
+	sending_node = 0
+	query_id = 26
+Node 1: Removing flow in CheckForTimedOutQueries, time = 257.5:
+	sending node = 0
+	query id = 25
+Node 1: Removing flow in CheckForTimedOutQueries, time = 258.5:
+	sending node = 4
+	query id = 25
+Node 1: Creating new flow at time 267.021: 
+	sending_node = 0
+	query_id = 27
+Node 1: Removing flow in CheckForTimedOutQueries, time = 267.5:
+	sending node = 2
+	query id = 26
+Node 1: Removing flow in CheckForTimedOutQueries, time = 268.5:
+	sending node = 0
+	query id = 26
+Node 1: Creating new flow at time 277.023: 
+	sending_node = 3
+	query_id = 28
+Node 1: Creating new flow at time 277.029: 
+	sending_node = 0
+	query_id = 28
+Node 1: Removing flow in CheckForTimedOutQueries, time = 277.5:
+	sending node = 0
+	query id = 27
+Node 1: Creating new flow at time 287.013: 
+	sending_node = 2
+	query_id = 29
+Node 1: Removing flow in CheckForTimedOutQueries, time = 287.5:
+	sending node = 3
+	query id = 28
+Node 1: Removing flow in CheckForTimedOutQueries, time = 288.5:
+	sending node = 0
+	query id = 28
+Node 1: Creating new flow at time 297.01: 
+	sending_node = 0
+	query_id = 30
+Node 1: Creating new flow at time 297.022: 
+	sending_node = 2
+	query_id = 30
+Node 1: Removing flow in CheckForTimedOutQueries, time = 297.5:
+	sending node = 2
+	query id = 29
+Node 1: Creating new flow at time 307.018: 
+	sending_node = 0
+	query_id = 31
+Node 1: Creating new flow at time 307.048: 
+	sending_node = 4
+	query_id = 31
+Node 1: Removing flow in CheckForTimedOutQueries, time = 307.5:
+	sending node = 0
+	query id = 30
+Node 1: Removing flow in CheckForTimedOutQueries, time = 308.5:
+	sending node = 2
+	query id = 30
+Node 1: Creating new flow at time 317.02: 
+	sending_node = 2
+	query_id = 32
+Node 1: Removing flow in CheckForTimedOutQueries, time = 317.5:
+	sending node = 0
+	query id = 31
+Node 1: Removing flow in CheckForTimedOutQueries, time = 318.5:
+	sending node = 4
+	query id = 31
+Node 1: Creating new flow at time 327.01: 
+	sending_node = 2
+	query_id = 33
+Node 1: Creating new flow at time 327.034: 
+	sending_node = 0
+	query_id = 33
+Node 1: Removing flow in CheckForTimedOutQueries, time = 327.5:
+	sending node = 2
+	query id = 32
+Node 1: Removing flow in CheckForTimedOutQueries, time = 337.5:
+	sending node = 2
+	query id = 33
+Node 1: Removing flow in CheckForTimedOutQueries, time = 338.5:
+	sending node = 0
+	query id = 33
+Node 1: Creating new flow at time 347.033: 
+	sending_node = 0
+	query_id = 35
+Node 1: Creating new flow at time 357.035: 
+	sending_node = 3
+	query_id = 36
+Node 1: Removing flow in CheckForTimedOutQueries, time = 357.5:
+	sending node = 0
+	query id = 35
+Node 1: Creating new flow at time 367.098: 
+	sending_node = 4
+	query_id = 37
+Node 1: Removing flow in CheckForTimedOutQueries, time = 367.5:
+	sending node = 3
+	query id = 36
+Node 1: Creating new flow at time 377.088: 
+	sending_node = 4
+	query_id = 38
+Node 1: Removing flow in CheckForTimedOutQueries, time = 377.5:
+	sending node = 4
+	query id = 37
+Node 1: Creating new flow at time 387.012: 
+	sending_node = 0
+	query_id = 39
+Node 1: Creating new flow at time 387.024: 
+	sending_node = 3
+	query_id = 39
+Node 1: Removing flow in CheckForTimedOutQueries, time = 387.5:
+	sending node = 4
+	query id = 38
+Node 1: Removing flow in CheckForTimedOutQueries, time = 397.5:
+	sending node = 0
+	query id = 39
+Node 1: Removing flow in CheckForTimedOutQueries, time = 398.5:
+	sending node = 3
+	query id = 39
