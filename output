@@ -1,346 +1,831 @@
 run time = 500
 Channel rate = 2000000b/s
 Running for 500 seconds
-Sum similarity = 3
-Node 1: Creating new flow at time 7.03887: 
-	sending_node = 0
-	query_id = 1
-Node 1: Creating new flow at time 7.05089: 
-	sending_node = 4
-	query_id = 1
-Node 1: Creating new flow at time 17.0111: 
-	sending_node = 0
-	query_id = 2
-Node 1: Creating new flow at time 17.0231: 
-	sending_node = 2
-	query_id = 2
-Node 1: Removing flow in CheckForTimedOutQueries, time = 17.5:
-	sending node = 0
-	query id = 1
-Node 1: Removing flow in CheckForTimedOutQueries, time = 18.5:
-	sending node = 4
-	query id = 1
-Node 1: Creating new flow at time 27.0134: 
-	sending_node = 2
-	query_id = 3
-Node 1: Removing flow in CheckForTimedOutQueries, time = 27.5:
-	sending node = 0
-	query id = 2
-Node 1: Removing flow in CheckForTimedOutQueries, time = 28.5:
-	sending node = 2
-	query id = 2
-Node 1: Creating new flow at time 37.0217: 
-	sending_node = 2
-	query_id = 4
-Node 1: Creating new flow at time 37.0277: 
-	sending_node = 0
-	query_id = 4
-Node 1: Removing flow in CheckForTimedOutQueries, time = 37.5:
-	sending node = 2
-	query id = 3
-Node 1: Creating new flow at time 47.012: 
-	sending_node = 2
-	query_id = 5
-Node 1: Creating new flow at time 47.018: 
-	sending_node = 0
-	query_id = 5
-Node 1: Removing flow in CheckForTimedOutQueries, time = 47.5:
-	sending node = 2
-	query id = 4
-Node 1: Removing flow in CheckForTimedOutQueries, time = 48.5:
-	sending node = 0
-	query id = 4
-Node 1: Creating new flow at time 57.0263: 
-	sending_node = 0
-	query_id = 6
-Node 1: Creating new flow at time 57.0564: 
-	sending_node = 4
-	query_id = 6
-Node 1: Removing flow in CheckForTimedOutQueries, time = 57.5:
-	sending node = 2
-	query id = 5
-Node 1: Removing flow in CheckForTimedOutQueries, time = 58.5:
-	sending node = 0
-	query id = 5
-Node 1: Creating new flow at time 67.0106: 
-	sending_node = 2
-	query_id = 7
-Node 1: Creating new flow at time 67.0166: 
-	sending_node = 0
-	query_id = 7
-Node 1: Removing flow in CheckForTimedOutQueries, time = 67.5:
-	sending node = 0
-	query id = 6
-Node 1: Removing flow in CheckForTimedOutQueries, time = 68.5:
-	sending node = 4
-	query id = 6
-Node 1: Creating new flow at time 77.0189: 
-	sending_node = 2
-	query_id = 8
-Node 1: Removing flow in CheckForTimedOutQueries, time = 77.5:
-	sending node = 2
-	query id = 7
-Node 1: Removing flow in CheckForTimedOutQueries, time = 78.5:
-	sending node = 0
-	query id = 7
-Node 1: Creating new flow at time 87.0333: 
-	sending_node = 0
-	query_id = 9
-Node 1: Creating new flow at time 87.0633: 
-	sending_node = 4
-	query_id = 9
-Node 1: Removing flow in CheckForTimedOutQueries, time = 87.5:
-	sending node = 2
-	query id = 8
-Node 1: Removing flow in CheckForTimedOutQueries, time = 97.5:
-	sending node = 0
-	query id = 9
-Node 1: Removing flow in CheckForTimedOutQueries, time = 98.5:
-	sending node = 4
-	query id = 9
-Node 1: Creating new flow at time 107.044: 
-	sending_node = 3
-	query_id = 11
-Node 1: Creating new flow at time 117.022: 
-	sending_node = 0
-	query_id = 12
-Node 1: Creating new flow at time 117.034: 
-	sending_node = 3
-	query_id = 12
-Node 1: Removing flow in CheckForTimedOutQueries, time = 117.5:
-	sending node = 3
-	query id = 11
-Node 1: Creating new flow at time 127.006: 
-	sending_node = 2
-	query_id = 13
-Node 1: Creating new flow at time 127.03: 
-	sending_node = 0
-	query_id = 13
-Node 1: Removing flow in CheckForTimedOutQueries, time = 127.5:
-	sending node = 0
-	query id = 12
-Node 1: Removing flow in CheckForTimedOutQueries, time = 128.5:
-	sending node = 3
-	query id = 12
-Node 1: Creating new flow at time 137.015: 
-	sending_node = 2
-	query_id = 14
-Node 1: Removing flow in CheckForTimedOutQueries, time = 137.5:
-	sending node = 2
-	query id = 13
-Node 1: Removing flow in CheckForTimedOutQueries, time = 138.5:
-	sending node = 0
-	query id = 13
-Node 1: Creating new flow at time 147.059: 
-	sending_node = 4
-	query_id = 15
-Node 1: Removing flow in CheckForTimedOutQueries, time = 147.5:
-	sending node = 2
-	query id = 14
-Node 1: Creating new flow at time 157.013: 
-	sending_node = 2
-	query_id = 16
-Node 1: Removing flow in CheckForTimedOutQueries, time = 157.5:
-	sending node = 4
-	query id = 15
-Node 1: Creating new flow at time 167.022: 
-	sending_node = 2
-	query_id = 17
-Node 1: Creating new flow at time 167.028: 
-	sending_node = 0
-	query_id = 17
-Node 1: Removing flow in CheckForTimedOutQueries, time = 167.5:
-	sending node = 2
-	query id = 16
-Node 1: Creating new flow at time 177.048: 
-	sending_node = 3
-	query_id = 18
-Node 1: Removing flow in CheckForTimedOutQueries, time = 177.5:
-	sending node = 2
-	query id = 17
-Node 1: Removing flow in CheckForTimedOutQueries, time = 178.5:
-	sending node = 0
-	query id = 17
-Node 1: Creating new flow at time 187.008: 
-	sending_node = 0
-	query_id = 19
-Node 1: Creating new flow at time 187.038: 
-	sending_node = 4
-	query_id = 19
-Node 1: Removing flow in CheckForTimedOutQueries, time = 187.5:
-	sending node = 3
-	query id = 18
-Node 1: Creating new flow at time 197.017: 
-	sending_node = 0
-	query_id = 20
-Node 1: Creating new flow at time 197.065: 
-	sending_node = 4
-	query_id = 20
-Node 1: Removing flow in CheckForTimedOutQueries, time = 197.5:
-	sending node = 0
-	query id = 19
-Node 1: Removing flow in CheckForTimedOutQueries, time = 198.5:
-	sending node = 4
-	query id = 19
-Node 1: Creating new flow at time 207.019: 
-	sending_node = 2
-	query_id = 21
-Node 1: Removing flow in CheckForTimedOutQueries, time = 207.5:
-	sending node = 0
-	query id = 20
-Node 1: Removing flow in CheckForTimedOutQueries, time = 208.5:
-	sending node = 4
-	query id = 20
-Node 1: Creating new flow at time 217.015: 
-	sending_node = 0
-	query_id = 22
-Node 1: Creating new flow at time 217.117: 
-	sending_node = 4
-	query_id = 22
-Node 1: Removing flow in CheckForTimedOutQueries, time = 217.5:
-	sending node = 2
-	query id = 21
-Node 1: Creating new flow at time 227.017: 
-	sending_node = 2
-	query_id = 23
-Node 1: Removing flow in CheckForTimedOutQueries, time = 227.5:
-	sending node = 0
-	query id = 22
-Node 1: Removing flow in CheckForTimedOutQueries, time = 228.5:
-	sending node = 4
-	query id = 22
-Node 1: Creating new flow at time 237.008: 
-	sending_node = 2
-	query_id = 24
-Node 1: Removing flow in CheckForTimedOutQueries, time = 237.5:
-	sending node = 2
-	query id = 23
-Node 1: Creating new flow at time 247.022: 
-	sending_node = 0
-	query_id = 25
-Node 1: Creating new flow at time 247.052: 
-	sending_node = 4
-	query_id = 25
-Node 1: Removing flow in CheckForTimedOutQueries, time = 247.5:
-	sending node = 2
-	query id = 24
-Node 1: Creating new flow at time 257.006: 
-	sending_node = 2
-	query_id = 26
-Node 1: Creating new flow at time 257.012: 
-	sending_node = 0
-	query_id = 26
-Node 1: Removing flow in CheckForTimedOutQueries, time = 257.5:
-	sending node = 0
-	query id = 25
-Node 1: Removing flow in CheckForTimedOutQueries, time = 258.5:
-	sending node = 4
-	query id = 25
-Node 1: Creating new flow at time 267.021: 
-	sending_node = 0
-	query_id = 27
-Node 1: Removing flow in CheckForTimedOutQueries, time = 267.5:
-	sending node = 2
-	query id = 26
-Node 1: Removing flow in CheckForTimedOutQueries, time = 268.5:
-	sending node = 0
-	query id = 26
-Node 1: Creating new flow at time 277.023: 
-	sending_node = 3
-	query_id = 28
-Node 1: Creating new flow at time 277.029: 
-	sending_node = 0
-	query_id = 28
-Node 1: Removing flow in CheckForTimedOutQueries, time = 277.5:
-	sending node = 0
-	query id = 27
-Node 1: Creating new flow at time 287.013: 
-	sending_node = 2
-	query_id = 29
-Node 1: Removing flow in CheckForTimedOutQueries, time = 287.5:
-	sending node = 3
-	query id = 28
-Node 1: Removing flow in CheckForTimedOutQueries, time = 288.5:
-	sending node = 0
-	query id = 28
-Node 1: Creating new flow at time 297.01: 
-	sending_node = 0
-	query_id = 30
-Node 1: Creating new flow at time 297.022: 
-	sending_node = 2
-	query_id = 30
-Node 1: Removing flow in CheckForTimedOutQueries, time = 297.5:
-	sending node = 2
-	query id = 29
-Node 1: Creating new flow at time 307.018: 
-	sending_node = 0
-	query_id = 31
-Node 1: Creating new flow at time 307.048: 
-	sending_node = 4
-	query_id = 31
-Node 1: Removing flow in CheckForTimedOutQueries, time = 307.5:
-	sending node = 0
-	query id = 30
-Node 1: Removing flow in CheckForTimedOutQueries, time = 308.5:
-	sending node = 2
-	query id = 30
-Node 1: Creating new flow at time 317.02: 
-	sending_node = 2
-	query_id = 32
-Node 1: Removing flow in CheckForTimedOutQueries, time = 317.5:
-	sending node = 0
-	query id = 31
-Node 1: Removing flow in CheckForTimedOutQueries, time = 318.5:
-	sending node = 4
-	query id = 31
-Node 1: Creating new flow at time 327.01: 
-	sending_node = 2
-	query_id = 33
-Node 1: Creating new flow at time 327.034: 
-	sending_node = 0
-	query_id = 33
-Node 1: Removing flow in CheckForTimedOutQueries, time = 327.5:
-	sending node = 2
-	query id = 32
-Node 1: Removing flow in CheckForTimedOutQueries, time = 337.5:
-	sending node = 2
-	query id = 33
-Node 1: Removing flow in CheckForTimedOutQueries, time = 338.5:
-	sending node = 0
-	query id = 33
-Node 1: Creating new flow at time 347.033: 
-	sending_node = 0
-	query_id = 35
-Node 1: Creating new flow at time 357.035: 
-	sending_node = 3
-	query_id = 36
-Node 1: Removing flow in CheckForTimedOutQueries, time = 357.5:
-	sending node = 0
-	query id = 35
-Node 1: Creating new flow at time 367.098: 
-	sending_node = 4
-	query_id = 37
-Node 1: Removing flow in CheckForTimedOutQueries, time = 367.5:
-	sending node = 3
-	query id = 36
-Node 1: Creating new flow at time 377.088: 
-	sending_node = 4
-	query_id = 38
-Node 1: Removing flow in CheckForTimedOutQueries, time = 377.5:
-	sending node = 4
-	query id = 37
-Node 1: Creating new flow at time 387.012: 
-	sending_node = 0
-	query_id = 39
-Node 1: Creating new flow at time 387.024: 
-	sending_node = 3
-	query_id = 39
-Node 1: Removing flow in CheckForTimedOutQueries, time = 387.5:
-	sending node = 4
-	query id = 38
-Node 1: Removing flow in CheckForTimedOutQueries, time = 397.5:
-	sending node = 0
-	query id = 39
-Node 1: Removing flow in CheckForTimedOutQueries, time = 398.5:
-	sending node = 3
-	query id = 39
+Sum similarity = 1
+0
+ 9
+ 10
+ 77
+ 4455
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 56
+ 3414
+ 68
+ 0.000
+ 0.000
+ 0.13
+ 0
+ 6.09
+ 0.00
+1
+ 9
+ 15
+ 77
+ 4182
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 57
+ 2939
+ 68
+ 0.000
+ 0.000
+ 0.19
+ 0
+ 31.74
+ 1.23
+2
+ 9
+ 10
+ 77
+ 4057
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 61
+ 3066
+ 68
+ 0.000
+ 0.000
+ 0.13
+ 0
+ 68.40
+ 1.83
+3
+ 9
+ 10
+ 77
+ 4678
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 51
+ 3557
+ 68
+ 0.000
+ 0.000
+ 0.13
+ 0
+ 708.15
+ 2.40
+4
+ 9
+ 5
+ 77
+ 4802
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 64
+ 4292
+ 68
+ 0.000
+ 0.000
+ 0.06
+ 0
+ 937.37
+ 1.73
+5
+ 9
+ 13
+ 77
+ 4874
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 42
+ 3324
+ 68
+ 0.000
+ 0.000
+ 0.17
+ 0
+ 693.67
+ 2.03
+6
+ 9
+ 21
+ 77
+ 4186
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 52
+ 2657
+ 68
+ 0.000
+ 0.000
+ 0.27
+ 0
+ 117.80
+ 2.01
+7
+ 9
+ 11
+ 77
+ 4352
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 59
+ 3362
+ 68
+ 0.000
+ 0.000
+ 0.14
+ 0
+ 33.64
+ 1.03
+8
+ 9
+ 6
+ 77
+ 4050
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 61
+ 3430
+ 68
+ 0.000
+ 0.000
+ 0.08
+ 0
+ 9.31
+ 0.00
+size of stats[0] = 21
+	query_sat_perc = 0.13
+size of stats[1] = 21
+	query_sat_perc = 0.19
+size of stats[2] = 21
+	query_sat_perc = 0.13
+size of stats[3] = 21
+	query_sat_perc = 0.13
+size of stats[4] = 21
+	query_sat_perc = 0.06
+size of stats[5] = 21
+	query_sat_perc = 0.17
+size of stats[6] = 21
+	query_sat_perc = 0.27
+size of stats[7] = 21
+	query_sat_perc = 0.14
+size of stats[8] = 21
+	query_sat_perc = 0.08
+Query sat perc = 0
+Num nodes = 9: Not scalable
+Channel rate = 2000000b/s
+Running for 500 seconds
+Sum similarity = 1
+0
+ 8
+ 18
+ 77
+ 3468
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 46
+ 1945
+ 68
+ 0.000
+ 0.000
+ 0.23
+ 0
+ 7.41
+ 0.00
+1
+ 8
+ 23
+ 77
+ 4488
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 39
+ 2450
+ 68
+ 0.000
+ 0.000
+ 0.30
+ 0
+ 17.31
+ 0.90
+2
+ 8
+ 18
+ 77
+ 4420
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 43
+ 2819
+ 68
+ 0.000
+ 0.000
+ 0.23
+ 0
+ 82.04
+ 1.71
+3
+ 8
+ 23
+ 77
+ 4284
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 31
+ 1966
+ 68
+ 0.000
+ 0.000
+ 0.30
+ 0
+ 207.04
+ 1.64
+4
+ 8
+ 14
+ 77
+ 4692
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 38
+ 3012
+ 68
+ 0.000
+ 0.000
+ 0.18
+ 0
+ 106.13
+ 1.50
+5
+ 8
+ 30
+ 77
+ 4488
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 31
+ 2015
+ 68
+ 0.000
+ 0.000
+ 0.39
+ 0
+ 511.71
+ 2.27
+6
+ 8
+ 13
+ 77
+ 4556
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 52
+ 3485
+ 68
+ 0.000
+ 0.000
+ 0.17
+ 0
+ 31.55
+ 0.86
+7
+ 8
+ 7
+ 77
+ 3672
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 59
+ 3035
+ 68
+ 0.000
+ 0.000
+ 0.09
+ 0
+ 10.39
+ 0.00
+size of stats[0] = 21
+	query_sat_perc = 0.23
+size of stats[1] = 21
+	query_sat_perc = 0.3
+size of stats[2] = 21
+	query_sat_perc = 0.23
+size of stats[3] = 21
+	query_sat_perc = 0.3
+size of stats[4] = 21
+	query_sat_perc = 0.18
+size of stats[5] = 21
+	query_sat_perc = 0.39
+size of stats[6] = 21
+	query_sat_perc = 0.17
+size of stats[7] = 21
+	query_sat_perc = 0.09
+Query sat perc = 0
+Num nodes = 8: Not scalable
+Channel rate = 2000000b/s
+Running for 500 seconds
+Sum similarity = 1
+0
+ 7
+ 22
+ 77
+ 3740
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 44
+ 1964
+ 68
+ 0.000
+ 0.000
+ 0.29
+ 0
+ 3.34
+ 0.00
+1
+ 7
+ 22
+ 77
+ 4457
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 45
+ 2701
+ 68
+ 0.000
+ 0.000
+ 0.29
+ 0
+ 26.01
+ 0.88
+2
+ 7
+ 25
+ 77
+ 5100
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 40
+ 2967
+ 68
+ 0.000
+ 0.000
+ 0.32
+ 0
+ 93.73
+ 1.87
+3
+ 7
+ 44
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 903
+ 68
+ 0.000
+ 0.000
+ 0.57
+ 0
+ 249.43
+ 2.70
+4
+ 7
+ 21
+ 77
+ 5040
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 40
+ 3096
+ 68
+ 0.000
+ 0.000
+ 0.27
+ 0
+ 167.63
+ 2.17
+5
+ 7
+ 17
+ 77
+ 4224
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 47
+ 2591
+ 68
+ 0.000
+ 0.000
+ 0.22
+ 0
+ 40.70
+ 1.11
+6
+ 7
+ 20
+ 77
+ 4097
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 46
+ 2357
+ 68
+ 0.000
+ 0.000
+ 0.26
+ 0
+ 4.49
+ 0.00
+size of stats[0] = 21
+	query_sat_perc = 0.29
+size of stats[1] = 21
+	query_sat_perc = 0.29
+size of stats[2] = 21
+	query_sat_perc = 0.32
+size of stats[3] = 21
+	query_sat_perc = 0.57
+size of stats[4] = 21
+	query_sat_perc = 0.27
+size of stats[5] = 21
+	query_sat_perc = 0.22
+size of stats[6] = 21
+	query_sat_perc = 0.26
+Query sat perc = 0
+Num nodes = 7: Not scalable
+Channel rate = 2000000b/s
+Running for 500 seconds
+Sum similarity = 1
+0
+ 6
+ 47
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 854
+ 68
+ 0.000
+ 0.000
+ 0.61
+ 0
+ 6.65
+ 0.00
+1
+ 6
+ 46
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 783
+ 68
+ 0.000
+ 0.000
+ 0.60
+ 0
+ 27.18
+ 1.49
+2
+ 6
+ 57
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 508
+ 68
+ 0.000
+ 0.000
+ 0.74
+ 0
+ 36.17
+ 2.36
+3
+ 6
+ 65
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 154
+ 68
+ 0.000
+ 0.000
+ 0.84
+ 0
+ 72.69
+ 2.41
+4
+ 6
+ 54
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 597
+ 68
+ 0.000
+ 0.000
+ 0.70
+ 0
+ 27.93
+ 1.55
+5
+ 6
+ 42
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 1008
+ 68
+ 0.000
+ 0.000
+ 0.55
+ 0
+ 11.51
+ 0.00
+size of stats[0] = 21
+	query_sat_perc = 0.61
+size of stats[1] = 21
+	query_sat_perc = 0.6
+size of stats[2] = 21
+	query_sat_perc = 0.74
+size of stats[3] = 21
+	query_sat_perc = 0.84
+size of stats[4] = 21
+	query_sat_perc = 0.7
+size of stats[5] = 21
+	query_sat_perc = 0.55
+Query sat perc = 0
+Num nodes = 6: Not scalable
+Channel rate = 2000000b/s
+Running for 500 seconds
+Sum similarity = 1
+0
+ 5
+ 77
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 0
+ 68
+ 3.708
+ 1.292
+ 1.00
+ 0
+ 5.79
+ 0.00
+1
+ 5
+ 77
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 0
+ 68
+ 3.464
+ 1.536
+ 1.00
+ 0
+ 19.37
+ 1.37
+2
+ 5
+ 77
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 0
+ 68
+ 3.167
+ 1.833
+ 1.00
+ 0
+ 34.30
+ 2.00
+3
+ 5
+ 77
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 0
+ 68
+ 3.503
+ 1.497
+ 1.00
+ 0
+ 22.04
+ 1.55
+4
+ 5
+ 77
+ 77
+ 5236
+ 50
+ 1463
+ 500.0
+ 5.00
+ 1.0
+ 1
+ 1
+ 0
+ 0
+ 68
+ 3.835
+ 1.165
+ 1.00
+ 0
+ 9.09
+ 0.00
+size of stats[0] = 21
+	query_sat_perc = 1
+size of stats[1] = 21
+	query_sat_perc = 1
+size of stats[2] = 21
+	query_sat_perc = 1
+size of stats[3] = 21
+	query_sat_perc = 1
+size of stats[4] = 21
+	query_sat_perc = 1
+Query sat perc = 1.2205
+Num nodes = 5: Scalable
