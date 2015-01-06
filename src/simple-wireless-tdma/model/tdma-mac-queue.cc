@@ -38,7 +38,7 @@
 #include "ns3/topk-query-server.h"
 
 #define FLOW_COUNT_START_TIME 50
-#define FLOW_COUNT_STOP_TIME 200
+#define FLOW_COUNT_STOP_TIME 750
 
 using namespace std;
 NS_LOG_COMPONENT_DEFINE ("TdmaMacQueue");
@@ -105,7 +105,7 @@ TdmaMacQueue::TdmaMacQueue ()
   Simulator::Schedule( Seconds(FLOW_COUNT_START_TIME), &TdmaMacQueue::UpdateNumberActiveFlows, this );
   Simulator::Schedule( Seconds(0.5), &TdmaMacQueue::CheckForTimedOutQueries, this ); // always check for timed out queries just
                                                                                       //  before updating # of active queries
-  Simulator::Schedule( Seconds(FLOW_COUNT_STOP_TIME), &TdmaMacQueue::PrintStats, this );
+  //Simulator::Schedule( Seconds(FLOW_COUNT_STOP_TIME), &TdmaMacQueue::PrintStats, this );
   Simulator::Schedule( NanoSeconds(10), &TdmaMacQueue::SetNodeId, this );
 }
 
@@ -191,14 +191,14 @@ TdmaMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 
     if( TDMA_MAC_QUEUE_DEBUG )
     {
-    std::cout<<"ERROR: Dropped packet in queue: \n\tTdmaMacQueue::Enqueue (Time = " << 
-                Simulator::Now().GetSeconds() << "):  Queue Size: " << 
-                GetSize () << " Max Size: " << GetMaxSize () << "\n";
-    std::cout<<"\tsending_node = " << tag.sending_node << "\n";
-    std::cout<<"\tquery_id = " << tag.query_id << "\n";
-    std::cout<<"\timage_num = " << tag.image_num << "\n";
-    std::cout<<"\ttotal_num = " << tag.num_images_rqstd << "\n";
-    std::cout<<"\tdeadline = " << dl_tag.deadline << "\n";
+			std::cout<<"ERROR: Dropped packet in queue: \n\tTdmaMacQueue::Enqueue (Time = " << 
+									Simulator::Now().GetSeconds() << "):  Queue Size: " << 
+									GetSize () << " Max Size: " << GetMaxSize () << "\n";
+			std::cout<<"\tsending_node = " << tag.sending_node << "\n";
+			std::cout<<"\tquery_id = " << tag.query_id << "\n";
+			std::cout<<"\timage_num = " << tag.image_num << "\n";
+			std::cout<<"\ttotal_num = " << tag.num_images_rqstd << "\n";
+			std::cout<<"\tdeadline = " << dl_tag.deadline << "\n";
     }
 
     return false;
@@ -419,7 +419,7 @@ TdmaMacQueue::UpdateNumberActiveFlows()
     Simulator::Schedule( Seconds(1), &TdmaMacQueue::UpdateNumberActiveFlows, this );
     
     Ptr<TopkQueryClient> clientPtr = m_netDevicePtr->GetNode()->GetApplication(1)->GetObject<TopkQueryClient>();
-    clientPtr->UpdateQueueStats( avg_queue_size, sum_number_flows, number_times_counted_flows );
+    clientPtr->UpdateQueueStats( avg_queue_size, m_size, sum_number_flows, number_times_counted_flows );
 	}
   return;
 }

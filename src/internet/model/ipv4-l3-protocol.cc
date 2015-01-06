@@ -59,7 +59,7 @@ Ipv4L3Protocol::GetTypeId (void)
                    MakeUintegerAccessor (&Ipv4L3Protocol::m_defaultTos),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("DefaultTtl", "The TTL value set by default on all outgoing packets generated on this node.",
-                   UintegerValue (10000),
+                   UintegerValue (253),
                    MakeUintegerAccessor (&Ipv4L3Protocol::m_defaultTtl),
                    MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("FragmentExpirationTimeout",
@@ -889,7 +889,7 @@ Ipv4L3Protocol::IpForward (Ptr<Ipv4Route> rtentry, Ptr<const Packet> p, const Ip
   Ipv4Header ipHeader = header;
   Ptr<Packet> packet = p->Copy ();
   int32_t interface = GetInterfaceForDevice (rtentry->GetOutputDevice ());
-  ipHeader.SetTtl (ipHeader.GetTtl () - 1);
+  /*ipHeader.SetTtl (ipHeader.GetTtl () - 1);
   if (ipHeader.GetTtl () == 0)
     {
       // Do not reply to ICMP or to multicast/broadcast IP address 
@@ -904,6 +904,7 @@ Ipv4L3Protocol::IpForward (Ptr<Ipv4Route> rtentry, Ptr<const Packet> p, const Ip
       m_dropTrace (header, packet, DROP_TTL_EXPIRED, m_node->GetObject<Ipv4> (), interface);
       return;
     }
+  */
   m_unicastForwardTrace (ipHeader, packet, interface);
   SendRealOut (rtentry, packet, ipHeader);
 }

@@ -147,6 +147,7 @@ TopkQueryClient::TopkQueryClient () :
   sum_number_flows = 0.0;
   num_times_counted_flows = 0.0;
   avg_queue_size = 0.0;
+  max_q_size = 0;
 
   rand_dest = CreateObject<UniformRandomVariable>();
 
@@ -435,12 +436,13 @@ TopkQueryClient::Send (void)
 
     ++m_sent;
 
+		// schedule sending next query
     ScheduleTransmit(timeliness);
 
     if( TOPK_QUERY_CLIENT_DEBUG )
     {
       std::cout << "At time " << Simulator::Now ().GetSeconds () << "s client in node " << GetNode()->GetId() << 
-                   " sent " << m_size << " bytes to " <<
+                   " sent query " << new_query.id << " to " <<
                    "node " << dest << "\n";
     }
   }
@@ -514,7 +516,7 @@ TopkQueryClient::CheckQuery( uint16_t id, uint16_t server )
 
   if( TOPK_QUERY_CLIENT_DEBUG )
   {
-    std::cout<<"In TopkQueryClient::CheckQuery() at time " << Simulator::Now().GetSeconds() << "\n";
+    std::cout<<"Node " << GetNode()->GetId() << " in TopkQueryClient::CheckQuery() at time " << Simulator::Now().GetSeconds() << "\n";
     std::cout<<"\tchecking query with id = " << id << "\n";
   }
 
@@ -587,8 +589,10 @@ TopkQueryClient::IncrementNumPacketsDropped()
 }
 
 void 
-TopkQueryClient::UpdateQueueStats( double avg_q_size, double sum_num_flows, double num_times_counted )
+TopkQueryClient::UpdateQueueStats( double avg_q_size, uint32_t current_q_size, double sum_num_flows, double num_times_counted )
 {
+  if( current_q_size > max_q_size )
+    max_q_size = current_q_size;
   avg_queue_size = avg_q_size;
   sum_number_flows = sum_num_flows;
   num_times_counted_flows = num_times_counted;
@@ -624,8 +628,8 @@ TopkQueryClient::PrintStats()
     avg_extra_time = sum_extra_time.GetSeconds()/(double)num_queries_satisfied;
     avg_query_time = sum_query_time.GetSeconds()/(double)num_queries_satisfied;
   }
-                   // 1   2   3   4   5   6  6b   7      8     9   10  11  12  13  14    15   16     17  18   19    20
-  fprintf(stats_fd, "%i, %i, %i, %i, %i, %i, %i, %.1f, %.2f, %.1f, %i, %i, %i, %i, %i, %.3f, %.3f, %.2f, %i, %.2f, %.2f\n",
+                   // 1   2   3   4   5   6  6b   7      8     9   10  11  12  13  14    15   16     17  18   19    20   21
+  fprintf(stats_fd, "%i, %i, %i, %i, %i, %i, %i, %.1f, %.2f, %.1f, %i, %i, %i, %i, %i, %.3f, %.3f, %.2f, %i, %.2f, %.2f, %i\n",
     GetNode()->GetId(), // 1 i 
     num_nodes, // 2 i
     num_queries_satisfied, // 3 i
@@ -646,7 +650,8 @@ TopkQueryClient::PrintStats()
     (double)num_queries_satisfied/(double)num_queries_issued, // 17 f
     num_packets_dropped, // 18 i
     avg_queue_size, // 19 .2f
-    sum_number_flows/num_times_counted_flows // 20 .2f  - avg num flows
+    sum_number_flows/num_times_counted_flows, // 20 .2f  - avg num flows
+    max_q_size
   );
 
   fclose(stats_fd);

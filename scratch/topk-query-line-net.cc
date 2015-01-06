@@ -54,7 +54,7 @@ NS_LOG_COMPONENT_DEFINE ("TopkQueryExample");
 
 using namespace ns3;
   
-bool IsScalable( std::string dataFilePath, double q_comp_thresh );
+bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow );
 
 int FindNumImages( std::string SumSimFilename, double sum_similarity );
 
@@ -81,6 +81,7 @@ int main (int argc, char *argv[])
   double channelRate = 2; // in Mbps
   bool oneFlow = false;
   double q_comp_thresh = 0.9;
+  bool satAllQueries = false;
 
   CommandLine cmd;
 
@@ -101,16 +102,25 @@ int main (int argc, char *argv[])
   cmd.AddValue ("numPacketsPerImage", "Number of packets neeed to send each image.", numPacketsPerImage);
   cmd.AddValue ("channelRate", "Rate of each wireless channel (in Mbps).", channelRate);
   cmd.AddValue ("oneFlow", "True to only send one flow from last node to first node for testing.", oneFlow);
+  cmd.AddValue ("satAllQueries", "Set true to set scalability defined by all nodes satisfying queries, not average.", satAllQueries);
 
   cmd.Parse (argc, argv);
 
   // set initial guess according to analysis
   int num_images = FindNumImages( sumSimFilename, sumSimilarity );
-  numNodes = (2.0*(channelRate*1000000)*timeliness)/(3.0*num_images*imageSizeKBytes*8000) - 2;
+  if( numNodes == 0 )
+  {
+    numNodes = (2.0*(channelRate*1000000)*timeliness)/(3.0*num_images*imageSizeKBytes*8000) - 2;
+    // dividing by two to get closer to actual experimental results seen so far...nothing to do with analysis
+    numNodes = numNodes/2.0;
+  }
+	if( numNodes < minNumNodes )
+		numNodes = minNumNodes;
   std::cout<<"Initial guess = " << numNodes << ", num images = " << num_images <<"\n";
 
   bool found_limit = false;
   bool last_trial_scalable = false;
+  bool first_run = true;
     
   char buf[1024];
 
@@ -120,6 +130,7 @@ int main (int argc, char *argv[])
     sprintf(buf, "%s/TopkQueryClientStats.csv", dataFilePath.c_str());
     std::ofstream stats_file;
     stats_file.open( buf, std::ofstream::out | std::ofstream::trunc );
+		stats_file.close();
     // set seed for random number generator
     SeedManager::SetRun(runSeed);
 
@@ -486,7 +497,7 @@ int main (int argc, char *argv[])
     //flowMonitor->SerializeToXmlFile("Topk-query-flow-monitor.xml", true, true);
     Simulator::Destroy ();
 
-    bool this_trial_scalable = IsScalable( dataFilePath, q_comp_thresh );
+    bool this_trial_scalable = IsScalable( dataFilePath, q_comp_thresh, satAllQueries, oneFlow );
 
     if( this_trial_scalable )
     {
@@ -501,7 +512,6 @@ int main (int argc, char *argv[])
     // Last = T && This = F
     if( last_trial_scalable && !this_trial_scalable ) // can't be first run, had to be incrementing
     {
-      lastNumNodes = numNodes;
       found_limit = true;
     }
     // Last = F && This = F
@@ -521,7 +531,7 @@ int main (int argc, char *argv[])
     // Last = F && This = T
     if( !last_trial_scalable && this_trial_scalable ) // first time run?
     {
-      if( lastNumNodes > 0 )
+      if( !first_run )
       {
         // not first time run. had to be decrementing - found limit
         lastNumNodes = numNodes;
@@ -542,6 +552,8 @@ int main (int argc, char *argv[])
       lastNumNodes = 0;
       found_limit = true;
     }
+
+    first_run = false;
   }
 
   sprintf(buf, "%s/Scalability.csv", dataFilePath_2.c_str());
@@ -552,7 +564,7 @@ int main (int argc, char *argv[])
   return 0;
 }
 
-bool IsScalable( std::string dataFilePath, double q_comp_thresh )
+bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow )
 {
   std::vector< std::vector<double> > stats;  
   char buf[1024];
@@ -577,14 +589,27 @@ bool IsScalable( std::string dataFilePath, double q_comp_thresh )
     }
     i++;
   }
+	stats_file.close();
+
+  if( oneFlow )
+  {
+    if( stats[0][Q_SAT_PERC_INDEX] >= q_comp_thresh )
+      return true;
+    else
+      return false;
+  }
 
   // now need to check the performance to determine if it is scalable or not
   double query_sat_perc = 0;
   for( uint16_t i = 0; i < stats.size()-1; i++ )
   {
     //std::cout<<"size of stats[" << i << "] = " << stats[i].size() << "\n";
-    //std::cout<<"\tquery_sat_perc = " << stats[i][Q_SAT_PERC_INDEX] << "\n";
+   // std::cout<<"\tquery_sat_perc = " << stats[i][Q_SAT_PERC_INDEX] << "\n";
     query_sat_perc += stats[i][Q_SAT_PERC_INDEX]; // index of query satisfied percentage = 16
+
+
+    if( satAllQueries && stats[i][Q_SAT_PERC_INDEX] < q_comp_thresh )
+      return false;
   }
   if( stats.size() == 0 )
   {
@@ -593,7 +618,7 @@ bool IsScalable( std::string dataFilePath, double q_comp_thresh )
   else
   {
     query_sat_perc = query_sat_perc/(stats.size()-1);
-    //std::cout<<"Query sat perc = " << query_sat_perc << " stats.size-1 = " << stats.size()-1 << "\n";
+//    std::cout<<"Query sat perc = " << query_sat_perc << " stats.size-1 = " << stats.size()-1 << "\n";
   }
   if( query_sat_perc >= q_comp_thresh )
   {

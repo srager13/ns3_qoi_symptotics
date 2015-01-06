@@ -24,7 +24,7 @@
 #include "ns3/ptr.h"
 #include "ns3/address.h"
 
-#define TOPK_QUERY_SERVER_DEBUG 0
+#define TOPK_QUERY_SERVER_DEBUG 1
 
 namespace ns3 {
 

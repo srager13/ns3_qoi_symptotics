@@ -18,56 +18,6 @@
  */
 
 //
-// This program configures a grid (default 5x5) of nodes on an 
-// 802.11b physical layer, with
-// 802.11b NICs in adhoc mode, and by default, sends one packet of 1000 
-// (application) bytes to node 1.
-//
-// The default layout is like this, on a 2-D grid.
-//
-// n20  n21  n22  n23  n24
-// n15  n16  n17  n18  n19
-// n10  n11  n12  n13  n14
-// n5   n6   n7   n8   n9
-// n0   n1   n2   n3   n4
-//
-// the layout is affected by the parameters given to GridPositionAllocator;
-// by default, GridWidth is 5 and numNodes is 25..
-//
-// There are a number of command-line options available to control
-// the default behavior.  The list of available command-line options
-// can be listed with the following command:
-// ./waf --run "wifi-simple-adhoc-grid --help"
-//
-// Note that all ns-3 attributes (not just the ones exposed in the below
-// script) can be changed at command line; see the ns-3 documentation.
-//
-// For instance, for this configuration, the physical layer will
-// stop successfully receiving packets when distance increases beyond
-// the default of 500m.
-// To see this effect, try running:
-//
-// ./waf --run "wifi-simple-adhoc --distance=500"
-// ./waf --run "wifi-simple-adhoc --distance=1000"
-// ./waf --run "wifi-simple-adhoc --distance=1500"
-// 
-// The source node and sink node can be changed like this:
-// 
-// ./waf --run "wifi-simple-adhoc --sourceNode=20 --sinkNode=10"
-//
-// This script can also be helpful to put the Wifi layer into verbose
-// logging mode; this command will turn on all wifi logging:
-// 
-// ./waf --run "wifi-simple-adhoc-grid --verbose=1"
-//
-// By default, trace file writing is off-- to enable it, try:
-// ./waf --run "wifi-simple-adhoc-grid --tracing=1"
-//
-// When you are done tracing, you will notice many pcap trace files 
-// in your directory.  If you have tcpdump installed, you can try this:
-//
-// tcpdump -r wifi-simple-adhoc-grid-0-0.pcap -nn -tt
-//
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -95,20 +45,19 @@
 NS_LOG_COMPONENT_DEFINE ("TopkQueryExample");
 
 using namespace ns3;
-
-bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries );
+  
+bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow );
 
 int FindNumImages( std::string SumSimFilename, double sum_similarity );
 
 int main (int argc, char *argv[])
 {
 	double runTime = 100;
-  std::string phyMode ("DsssRate11Mbps");
   double distance = 250;  // m
   uint32_t numNodes = 25;  // by default, 5x5
   uint32_t lastNumNodes = 0;
-  uint32_t nodeInc = 1;
-  uint32_t minNumNodes = 9;
+  uint32_t nodeInc = 5;
+  uint32_t minNumNodes = 3;
   double sumSimilarity = 0.6;
   double timeliness = 5.0;
   bool tracing = false;
@@ -122,13 +71,13 @@ int main (int argc, char *argv[])
   int numRuns = 1;
   int numPacketsPerImage = 1;
   double channelRate = 2; // in Mbps
+  bool oneFlow = false;
   double q_comp_thresh = 0.9;
   bool satAllQueries = false;
 
   CommandLine cmd;
 
 	cmd.AddValue ("runTime", "Run time of simulation (in seconds)", runTime);
-  cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
   cmd.AddValue ("distance", "distance (m)", distance);
   cmd.AddValue ("sumSimilarity", "Sum similarity requirement. Translated into number of images as defined in SumSimRequirements.csv.", sumSimilarity);
   cmd.AddValue ("timeliness", "Timeliness requirement of queries", timeliness);
@@ -144,6 +93,7 @@ int main (int argc, char *argv[])
   cmd.AddValue ("numRuns", "Total number of trials.", numRuns);
   cmd.AddValue ("numPacketsPerImage", "Number of packets neeed to send each image.", numPacketsPerImage);
   cmd.AddValue ("channelRate", "Rate of each wireless channel (in Mbps).", channelRate);
+  cmd.AddValue ("oneFlow", "True to only send one flow from last node to first node for testing.", oneFlow);
   cmd.AddValue ("satAllQueries", "Set true to set scalability defined by all nodes satisfying queries, not average.", satAllQueries);
 
   cmd.Parse (argc, argv);
@@ -152,11 +102,10 @@ int main (int argc, char *argv[])
   int num_images = FindNumImages( sumSimFilename, sumSimilarity );
   if( numNodes == 0 )
   {
-    int val = (int)((channelRate*1000000.0*timeliness)/(5.0*num_images*imageSizeKBytes*8000) - 1);
-    numNodes = val*val;
+    numNodes = ((channelRate*1000000)*timeliness)/(num_images*imageSizeKBytes*8000);
   }
-  if( numNodes < minNumNodes )
-    numNodes = minNumNodes;
+	if( numNodes < minNumNodes )
+		numNodes = minNumNodes;
   std::cout<<"Initial guess = " << numNodes << ", num images = " << num_images <<"\n";
 
   bool found_limit = false;
@@ -171,16 +120,9 @@ int main (int argc, char *argv[])
     sprintf(buf, "%s/TopkQueryClientStats.csv", dataFilePath.c_str());
     std::ofstream stats_file;
     stats_file.open( buf, std::ofstream::out | std::ofstream::trunc );
+		stats_file.close();
     // set seed for random number generator
     SeedManager::SetRun(runSeed);
-
-    // disable fragmentation for frames below 2200 bytes
-    //Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
-    // turn off RTS/CTS for frames below 2200 bytes
-    //Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("2200"));
-    // Fix non-unicast data rate to be the same as that of unicast
-    //Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode", 
-     //                   StringValue (phyMode));
 
     NodeContainer c;
     c.Create (numNodes);
@@ -196,10 +138,9 @@ int main (int argc, char *argv[])
         2,0,0,1,0,
         3,0,0,0,1);*/
     // if TDMA slot assignment is through a file
-    char buf[50];
-    sprintf(buf, "./tdmaSlotAssignFiles/tdmaSlots_%i.txt", numNodes);
-    TdmaHelper tdma = TdmaHelper (buf);
-  //    TdmaHelper tdma =  = TdmaHelper (c.GetN (), c.GetN ()); // in this case selected, numSlots = nodes
+//    sprintf(buf, "./tdmaSlotAssignFiles/tdmaSlots_lineNet_%i.csv", numNodes);
+    //TdmaHelper tdma = TdmaHelper (buf);
+    TdmaHelper tdma = TdmaHelper (c.GetN (), c.GetN ()); // in this case selected, numSlots = nodes
 
     TdmaControllerHelper controller;
     sprintf(buf, "%ib/s", (int)channelRate*1000000);
@@ -213,16 +154,12 @@ int main (int argc, char *argv[])
     NetDeviceContainer devices = tdma.Install (c);
 
 
-    uint16_t sq_rt_num_nodes = (uint16_t)sqrt(numNodes);
     // Set node positions (no mobility)
     MobilityHelper mobility;
-    mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                   "MinX", DoubleValue (0.0),
-                                   "MinY", DoubleValue (0.0),
-                                   "DeltaX", DoubleValue (distance),
-                                   "DeltaY", DoubleValue (distance),
-                                   "GridWidth", UintegerValue (sq_rt_num_nodes),
-                                   "LayoutType", StringValue ("RowFirst"));
+    mobility.SetPositionAllocator ("ns3::UniformDiscPositionAllocator",
+                                   "rho", DoubleValue((distance-5.0)/2.0),
+                                   "X", DoubleValue ((distance-5.0)/2.0),
+                                   "Y", DoubleValue ((distance-5.0)/2.0) );
     mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
     mobility.Install (c);
 
@@ -293,12 +230,7 @@ int main (int argc, char *argv[])
 
           // need to make static routes based on following structure:
           //
-          //  if dest%sqrtnn > me%sqrtnn, then route right
-          //  if dest%sqrtnn < me%sqrtnn, then route left
-          //  if dest%sqrtnn == me%sqrtnn, then (go up/down)
-          //    if dest/sqrtnn < me/sqrtnn, then go down
-          //    if dest/sqrtnn > me/sqrtnn, then go up
-
+          //  send to dest
      
           // AddHostRouteTo( dest, nextHop, interface, metric) 
           //  i is current node, j is dest
@@ -356,207 +288,8 @@ int main (int argc, char *argv[])
             exit(-1);
           }
           sprintf(dest, "10.1.%d.%d", secondByte, firstByte);
-         
-          if( j%sq_rt_num_nodes > i%sq_rt_num_nodes )
-          {
-            firstByte = (i+1+1)&(uint8_t)255;
-            if( i+1 < 255 )
-            {
-              secondByte = second_byte_start;
-            }
-            else if( i+1 < 511 )
-            {
-              secondByte = second_byte_start + (uint8_t)1;
-            }
-            else if( i+1 < 767 )
-            {
-              secondByte = second_byte_start + (uint8_t)2;
-            }
-            else if( i+1 < 1023 )
-            {
-              secondByte = second_byte_start + (uint8_t)3;
-            }
-            else if( i+1 < 1279 )
-            {
-              secondByte = second_byte_start + (uint8_t)4;
-            }
-            else if( i+1 < 1535 )
-            {
-              secondByte = second_byte_start + (uint8_t)5;
-            }
-            else if( i+1 < 1791 )
-            {
-              secondByte = second_byte_start + (uint8_t)6;
-            }
-            else if( i+1 < 2047 )
-            {
-              secondByte = second_byte_start + (uint8_t)7;
-            }
-            else if( i+1 < 2303 )
-            {
-              secondByte = second_byte_start + (uint8_t)8;
-            }
-            else if( i+1 < 2559 )
-            {
-              secondByte = second_byte_start + (uint8_t)9;
-            }
-            else if( i+1 < 2815 )
-            {
-              secondByte = second_byte_start + (uint8_t)10;
-            }
-
-          }
-          else if( j%sq_rt_num_nodes < i%sq_rt_num_nodes )
-          {
-            firstByte = (i-1+1)&(uint8_t)255;
-            if( i-1 < 255 )
-            {
-              secondByte = second_byte_start;
-            }
-            else if( i-1 < 511 )
-            {
-              secondByte = second_byte_start + (uint8_t)1;
-            }
-            else if( i-1 < 767 )
-            {
-              secondByte = second_byte_start + (uint8_t)2;
-            }
-            else if( i-1 < 1023 )
-            {
-              secondByte = second_byte_start + (uint8_t)3;
-            }
-            else if( i-1 < 1279 )
-            {
-              secondByte = second_byte_start + (uint8_t)4;
-            }
-            else if( i-1 < 1535 )
-            {
-              secondByte = second_byte_start + (uint8_t)5;
-            }
-            else if( i-1 < 1791 )
-            {
-              secondByte = second_byte_start + (uint8_t)6;
-            }
-            else if( i-1 < 2047 )
-            {
-              secondByte = second_byte_start + (uint8_t)7;
-            }
-            else if( i-1 < 2303 )
-            {
-              secondByte = second_byte_start + (uint8_t)8;
-            }
-            else if( i-1 < 2559 )
-            {
-              secondByte = second_byte_start + (uint8_t)9;
-            }
-            else if( i-1 < 2815 )
-            {
-              secondByte = second_byte_start + (uint8_t)10;
-            }
-
-          }
-          else if( j/sq_rt_num_nodes < i/sq_rt_num_nodes )
-          {
-            firstByte = (i-sq_rt_num_nodes+1)&(uint8_t)255;
-            if( i-sq_rt_num_nodes < 255 )
-            {
-              secondByte = second_byte_start;
-            }
-            else if( i-sq_rt_num_nodes < 511 )
-            {
-              secondByte = second_byte_start + (uint8_t)1;
-            }
-            else if( i-sq_rt_num_nodes < 767 )
-            {
-              secondByte = second_byte_start + (uint8_t)2;
-            }
-            else if( i-sq_rt_num_nodes < 1023 )
-            {
-              secondByte = second_byte_start + (uint8_t)3;
-            }
-            else if( i-sq_rt_num_nodes < 1279 )
-            {
-              secondByte = second_byte_start + (uint8_t)4;
-            }
-            else if( i-sq_rt_num_nodes < 1535 )
-            {
-              secondByte = second_byte_start + (uint8_t)5;
-            }
-            else if( i-sq_rt_num_nodes < 1791 )
-            {
-              secondByte = second_byte_start + (uint8_t)6;
-            }
-            else if( i-sq_rt_num_nodes < 2047 )
-            {
-              secondByte = second_byte_start + (uint8_t)7;
-            }
-            else if( i-sq_rt_num_nodes < 2303 )
-            {
-              secondByte = second_byte_start + (uint8_t)8;
-            }
-            else if( i-sq_rt_num_nodes < 2559 )
-            {
-              secondByte = second_byte_start + (uint8_t)9;
-            }
-            else if( i-sq_rt_num_nodes < 2815 )
-            {
-              secondByte = second_byte_start + (uint8_t)10;
-            }
-          }
-          else if( j/sq_rt_num_nodes > i/sq_rt_num_nodes )
-          {
-            firstByte = (i+sq_rt_num_nodes+1)&(uint8_t)255;
-            if( i+sq_rt_num_nodes < 255 )
-            {
-              secondByte = second_byte_start;
-            }
-            else if( i+sq_rt_num_nodes < 511 )
-            {
-              secondByte = second_byte_start + (uint8_t)1;
-            }
-            else if( i+sq_rt_num_nodes < 767 )
-            {
-              secondByte = second_byte_start + (uint8_t)2;
-            }
-            else if( i+sq_rt_num_nodes < 1023 )
-            {
-              secondByte = second_byte_start + (uint8_t)3;
-            }
-            else if( i+sq_rt_num_nodes < 1279 )
-            {
-              secondByte = second_byte_start + (uint8_t)4;
-            }
-            else if( i+sq_rt_num_nodes < 1535 )
-            {
-              secondByte = second_byte_start + (uint8_t)5;
-            }
-            else if( i+sq_rt_num_nodes < 1791 )
-            {
-              secondByte = second_byte_start + (uint8_t)6;
-            }
-            else if( i+sq_rt_num_nodes < 2047 )
-            {
-              secondByte = second_byte_start + (uint8_t)7;
-            }
-            else if( i+sq_rt_num_nodes < 2303 )
-            {
-              secondByte = second_byte_start + (uint8_t)8;
-            }
-            else if( i+sq_rt_num_nodes < 2559 )
-            {
-              secondByte = second_byte_start + (uint8_t)9;
-            }
-            else if( i+sq_rt_num_nodes < 2815 )
-            {
-              secondByte = second_byte_start + (uint8_t)10;
-            }
-          }
-          else
-          {
-            std::cout<<"ERROR: Don't know where to set next hop for node " << i << "'s path to " << j << "\n";
-          }
-
           sprintf(nextHop, "10.1.%d.%d", secondByte, firstByte);
+         
           //std::cout<<"For node " << i << ": setting next hop of " << nextHop << " for destination of " << dest << "\n"; 
           ipv4staticRouting[i]->AddHostRouteTo(Ipv4Address(dest),Ipv4Address(nextHop),1);
       }
@@ -595,7 +328,6 @@ int main (int argc, char *argv[])
     }
 
     // Output what we are doing
-    //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with grid distance " << distance);
   //
   // Create a TopkQueryServer application on node one.
   //
@@ -629,6 +361,7 @@ int main (int argc, char *argv[])
     client.SetAttribute ("NumRuns", UintegerValue (numRuns));
     client.SetAttribute ("NumPacketsPerImage", IntegerValue (numPacketsPerImage));
     client.SetAttribute ("ChannelRate", DoubleValue (channelRate));
+    client.SetAttribute ("OneFlow", BooleanValue(oneFlow));
     apps = client.Install(c);
     apps.Start (Seconds (2.0));
     apps.Stop (Seconds (runTime-100.0));
@@ -639,15 +372,15 @@ int main (int argc, char *argv[])
     flowMonitor = flowHelper.InstallAll();
   */
 
-    std::cout<<"Running for " << runTime << " seconds\n";
-    std::cout<<"Sum similarity = " << sumSimilarity << "\n";
+    //std::cout<<"Running for " << runTime << " seconds\n";
+    //std::cout<<"Sum similarity = " << sumSimilarity << "\n";
 
     Simulator::Stop (Seconds (runTime));
     Simulator::Run ();
     //flowMonitor->SerializeToXmlFile("Topk-query-flow-monitor.xml", true, true);
     Simulator::Destroy ();
 
-    bool this_trial_scalable = IsScalable( dataFilePath, q_comp_thresh, satAllQueries );
+    bool this_trial_scalable = IsScalable( dataFilePath, q_comp_thresh, satAllQueries, oneFlow );
 
     if( this_trial_scalable )
     {
@@ -669,18 +402,14 @@ int main (int argc, char *argv[])
     {
       // either first run or had been decrementing.  either way, haven't found limit yet.
       lastNumNodes = numNodes;
-      uint16_t sq_rt_num_nodes = (uint16_t)sqrt(numNodes); // take sqrt, increment, then square again
-      numNodes = sq_rt_num_nodes - nodeInc;
-      numNodes = numNodes*numNodes;
+      numNodes = numNodes - nodeInc;
     }
     // Last = T && This = T
     if( last_trial_scalable && this_trial_scalable )
     {
       // had to be incrementing. haven't found limit yet.
       lastNumNodes = numNodes;
-      uint16_t sq_rt_num_nodes = (uint16_t)sqrt(numNodes); // take sqrt, increment, then square again
-      numNodes = sq_rt_num_nodes + nodeInc;
-      numNodes = numNodes*numNodes;
+      numNodes = numNodes + nodeInc;
     }
     // Last = F && This = T
     if( !last_trial_scalable && this_trial_scalable ) // first time run?
@@ -688,21 +417,20 @@ int main (int argc, char *argv[])
       if( !first_run )
       {
         // not first time run. had to be decrementing - found limit
+        lastNumNodes = numNodes;
         found_limit = true;
       }
       else
       {
         // first time run. don't know anything yet. need to increment and test again.
         lastNumNodes = numNodes;
-        uint16_t sq_rt_num_nodes = (uint16_t)sqrt(numNodes); // take sqrt, increment, then square again
-        numNodes = sq_rt_num_nodes + nodeInc;
-        numNodes = numNodes*numNodes;
+        numNodes = numNodes + nodeInc;
       }
     }
     
     last_trial_scalable = this_trial_scalable;
-    
-    if( lastNumNodes == minNumNodes && !last_trial_scalable )
+
+    if( lastNumNodes < minNumNodes )
     {
       lastNumNodes = 0;
       found_limit = true;
@@ -715,11 +443,11 @@ int main (int argc, char *argv[])
   std::ofstream scal_file;
   scal_file.open( buf, std::ofstream::app );
   scal_file << sumSimilarity << ", " << timeliness << ", " << lastNumNodes << "\n";
-  scal_file.close();
+ 
   return 0;
 }
 
-bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries )
+bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow )
 {
   std::vector< std::vector<double> > stats;  
   char buf[1024];
@@ -744,16 +472,25 @@ bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQuer
     }
     i++;
   }
-  stats_file.close();
+	stats_file.close();
+
+  if( oneFlow )
+  {
+    if( stats[0][Q_SAT_PERC_INDEX] >= q_comp_thresh )
+      return true;
+    else
+      return false;
+  }
 
   // now need to check the performance to determine if it is scalable or not
   double query_sat_perc = 0;
   for( uint16_t i = 0; i < stats.size()-1; i++ )
   {
     //std::cout<<"size of stats[" << i << "] = " << stats[i].size() << "\n";
-    //std::cout<<"\tquery_sat_perc = " << stats[i][Q_SAT_PERC_INDEX] << "\n";
+   // std::cout<<"\tquery_sat_perc = " << stats[i][Q_SAT_PERC_INDEX] << "\n";
     query_sat_perc += stats[i][Q_SAT_PERC_INDEX]; // index of query satisfied percentage = 16
-    
+
+
     if( satAllQueries && stats[i][Q_SAT_PERC_INDEX] < q_comp_thresh )
       return false;
   }
@@ -764,7 +501,7 @@ bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQuer
   else
   {
     query_sat_perc = query_sat_perc/(stats.size()-1);
-    //std::cout<<"Query sat perc = " << query_sat_perc << " stats.size-1 = " << stats.size()-1 << "\n";
+//    std::cout<<"Query sat perc = " << query_sat_perc << " stats.size-1 = " << stats.size()-1 << "\n";
   }
   if( query_sat_perc >= q_comp_thresh )
   {
@@ -798,6 +535,11 @@ int FindNumImages( std::string SumSimFilename, double sum_similarity )
       sumsim_fd.getline( buf, 32, '\n' );  
       num_images = (int)strtod(buf,&pEnd);
    
+      if( TOPK_QUERY_CLIENT_DEBUG )
+      {
+        std::cout<<"From file: sum_sim = " << sum_sim << ", num_images = " << num_images <<" (input sum similarity = " << sum_similarity << ")\n";
+      }
+
       if( sum_sim >= sum_similarity )
       {
         return num_images;

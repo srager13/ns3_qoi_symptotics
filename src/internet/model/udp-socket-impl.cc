@@ -522,6 +522,7 @@ UdpSocketImpl::DoSendTo (Ptr<Packet> p, Ipv4Address dest, uint16_t port)
     }
   else if (IsManualIpTtl () && GetIpTtl () != 0 && !dest.IsMulticast () && !dest.IsBroadcast ())
     {
+      std::cout<< "Check this piece of code in upd-socket-impl.cc (in internet/model)\n";
       SocketIpTtlTag tag;
       tag.SetTtl (GetIpTtl ());
       p->AddPacketTag (tag);

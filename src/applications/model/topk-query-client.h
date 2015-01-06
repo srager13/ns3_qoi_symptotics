@@ -33,7 +33,7 @@
 #include <vector>
 
 //#define SMALL_QUEUES 0
-#define TOPK_QUERY_CLIENT_DEBUG 0
+#define TOPK_QUERY_CLIENT_DEBUG 1
 #define ALL_DEST 0
 
 namespace ns3 {
@@ -263,7 +263,7 @@ public:
 
   void IncrementNumPacketsDropped();
 
-  void UpdateQueueStats( double avg_q_size, double sum_num_flows, double num_times_counted );
+  void UpdateQueueStats( double avg_q_size, uint32_t current_q_size, double sum_num_flows, double num_times_counted );
 
 protected:
   virtual void DoDispose (void);
@@ -310,7 +310,6 @@ private:
   }
 
   double sum_similarity;
-  uint32_t m_size; //!< Size of the sent packet
 
   uint8_t *m_data; //!< packet payload data
 
@@ -352,6 +351,7 @@ private:
   double sum_number_flows;
   double num_times_counted_flows;
   double avg_queue_size;
+  uint32_t max_q_size;
 
   double channel_rate;
 

@@ -1,831 +1,350 @@
-run time = 500
-Channel rate = 2000000b/s
-Running for 500 seconds
-Sum similarity = 1
-0
- 9
- 10
- 77
- 4455
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 56
- 3414
- 68
- 0.000
- 0.000
- 0.13
- 0
- 6.09
- 0.00
-1
- 9
- 15
- 77
- 4182
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 57
- 2939
- 68
- 0.000
- 0.000
- 0.19
- 0
- 31.74
- 1.23
-2
- 9
- 10
- 77
- 4057
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 61
- 3066
- 68
- 0.000
- 0.000
- 0.13
- 0
- 68.40
- 1.83
-3
- 9
- 10
- 77
- 4678
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 51
- 3557
- 68
- 0.000
- 0.000
- 0.13
- 0
- 708.15
- 2.40
-4
- 9
- 5
- 77
- 4802
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 64
- 4292
- 68
- 0.000
- 0.000
- 0.06
- 0
- 937.37
- 1.73
-5
- 9
- 13
- 77
- 4874
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 42
- 3324
- 68
- 0.000
- 0.000
- 0.17
- 0
- 693.67
- 2.03
-6
- 9
- 21
- 77
- 4186
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 52
- 2657
- 68
- 0.000
- 0.000
- 0.27
- 0
- 117.80
- 2.01
-7
- 9
- 11
- 77
- 4352
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 59
- 3362
- 68
- 0.000
- 0.000
- 0.14
- 0
- 33.64
- 1.03
-8
- 9
- 6
- 77
- 4050
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 61
- 3430
- 68
- 0.000
- 0.000
- 0.08
- 0
- 9.31
- 0.00
-size of stats[0] = 21
-	query_sat_perc = 0.13
-size of stats[1] = 21
-	query_sat_perc = 0.19
-size of stats[2] = 21
-	query_sat_perc = 0.13
-size of stats[3] = 21
-	query_sat_perc = 0.13
-size of stats[4] = 21
-	query_sat_perc = 0.06
-size of stats[5] = 21
-	query_sat_perc = 0.17
-size of stats[6] = 21
-	query_sat_perc = 0.27
-size of stats[7] = 21
-	query_sat_perc = 0.14
-size of stats[8] = 21
-	query_sat_perc = 0.08
-Query sat perc = 0
-Num nodes = 9: Not scalable
-Channel rate = 2000000b/s
-Running for 500 seconds
-Sum similarity = 1
-0
- 8
- 18
- 77
- 3468
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 46
- 1945
- 68
- 0.000
- 0.000
- 0.23
- 0
- 7.41
- 0.00
-1
- 8
- 23
- 77
- 4488
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 39
- 2450
- 68
- 0.000
- 0.000
- 0.30
- 0
- 17.31
- 0.90
-2
- 8
- 18
- 77
- 4420
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 43
- 2819
- 68
- 0.000
- 0.000
- 0.23
- 0
- 82.04
- 1.71
-3
- 8
- 23
- 77
- 4284
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 31
- 1966
- 68
- 0.000
- 0.000
- 0.30
- 0
- 207.04
- 1.64
-4
- 8
- 14
- 77
- 4692
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 38
- 3012
- 68
- 0.000
- 0.000
- 0.18
- 0
- 106.13
- 1.50
-5
- 8
- 30
- 77
- 4488
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 31
- 2015
- 68
- 0.000
- 0.000
- 0.39
- 0
- 511.71
- 2.27
-6
- 8
- 13
- 77
- 4556
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 52
- 3485
- 68
- 0.000
- 0.000
- 0.17
- 0
- 31.55
- 0.86
-7
- 8
- 7
- 77
- 3672
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 59
- 3035
- 68
- 0.000
- 0.000
- 0.09
- 0
- 10.39
- 0.00
-size of stats[0] = 21
-	query_sat_perc = 0.23
-size of stats[1] = 21
-	query_sat_perc = 0.3
-size of stats[2] = 21
-	query_sat_perc = 0.23
-size of stats[3] = 21
-	query_sat_perc = 0.3
-size of stats[4] = 21
-	query_sat_perc = 0.18
-size of stats[5] = 21
-	query_sat_perc = 0.39
-size of stats[6] = 21
-	query_sat_perc = 0.17
-size of stats[7] = 21
-	query_sat_perc = 0.09
-Query sat perc = 0
-Num nodes = 8: Not scalable
-Channel rate = 2000000b/s
-Running for 500 seconds
-Sum similarity = 1
-0
- 7
- 22
- 77
- 3740
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 44
- 1964
- 68
- 0.000
- 0.000
- 0.29
- 0
- 3.34
- 0.00
-1
- 7
- 22
- 77
- 4457
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 45
- 2701
- 68
- 0.000
- 0.000
- 0.29
- 0
- 26.01
- 0.88
-2
- 7
- 25
- 77
- 5100
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 40
- 2967
- 68
- 0.000
- 0.000
- 0.32
- 0
- 93.73
- 1.87
-3
- 7
- 44
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 903
- 68
- 0.000
- 0.000
- 0.57
- 0
- 249.43
- 2.70
-4
- 7
- 21
- 77
- 5040
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 40
- 3096
- 68
- 0.000
- 0.000
- 0.27
- 0
- 167.63
- 2.17
-5
- 7
- 17
- 77
- 4224
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 47
- 2591
- 68
- 0.000
- 0.000
- 0.22
- 0
- 40.70
- 1.11
-6
- 7
- 20
- 77
- 4097
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 46
- 2357
- 68
- 0.000
- 0.000
- 0.26
- 0
- 4.49
- 0.00
-size of stats[0] = 21
-	query_sat_perc = 0.29
-size of stats[1] = 21
-	query_sat_perc = 0.29
-size of stats[2] = 21
-	query_sat_perc = 0.32
-size of stats[3] = 21
-	query_sat_perc = 0.57
-size of stats[4] = 21
-	query_sat_perc = 0.27
-size of stats[5] = 21
-	query_sat_perc = 0.22
-size of stats[6] = 21
-	query_sat_perc = 0.26
-Query sat perc = 0
-Num nodes = 7: Not scalable
-Channel rate = 2000000b/s
-Running for 500 seconds
-Sum similarity = 1
-0
- 6
- 47
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 854
- 68
- 0.000
- 0.000
- 0.61
- 0
- 6.65
- 0.00
-1
- 6
- 46
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 783
- 68
- 0.000
- 0.000
- 0.60
- 0
- 27.18
- 1.49
-2
- 6
- 57
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 508
- 68
- 0.000
- 0.000
- 0.74
- 0
- 36.17
- 2.36
-3
- 6
- 65
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 154
- 68
- 0.000
- 0.000
- 0.84
- 0
- 72.69
- 2.41
-4
- 6
- 54
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 597
- 68
- 0.000
- 0.000
- 0.70
- 0
- 27.93
- 1.55
-5
- 6
- 42
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 1008
- 68
- 0.000
- 0.000
- 0.55
- 0
- 11.51
- 0.00
-size of stats[0] = 21
-	query_sat_perc = 0.61
-size of stats[1] = 21
-	query_sat_perc = 0.6
-size of stats[2] = 21
-	query_sat_perc = 0.74
-size of stats[3] = 21
-	query_sat_perc = 0.84
-size of stats[4] = 21
-	query_sat_perc = 0.7
-size of stats[5] = 21
-	query_sat_perc = 0.55
-Query sat perc = 0
-Num nodes = 6: Not scalable
-Channel rate = 2000000b/s
-Running for 500 seconds
-Sum similarity = 1
-0
- 5
- 77
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 0
- 68
- 3.708
- 1.292
- 1.00
- 0
- 5.79
- 0.00
-1
- 5
- 77
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 0
- 68
- 3.464
- 1.536
- 1.00
- 0
- 19.37
- 1.37
-2
- 5
- 77
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 0
- 68
- 3.167
- 1.833
- 1.00
- 0
- 34.30
- 2.00
-3
- 5
- 77
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 0
- 68
- 3.503
- 1.497
- 1.00
- 0
- 22.04
- 1.55
-4
- 5
- 77
- 77
- 5236
- 50
- 1463
- 500.0
- 5.00
- 1.0
- 1
- 1
- 0
- 0
- 68
- 3.835
- 1.165
- 1.00
- 0
- 9.09
- 0.00
-size of stats[0] = 21
-	query_sat_perc = 1
-size of stats[1] = 21
-	query_sat_perc = 1
-size of stats[2] = 21
-	query_sat_perc = 1
-size of stats[3] = 21
-	query_sat_perc = 1
-size of stats[4] = 21
-	query_sat_perc = 1
-Query sat perc = 1.2205
-Num nodes = 5: Scalable
+rand_change = 0, resulting required image num = 6
+Node 5's server in ReceiveQuery at time 7: 
+	query from node 0
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 5) at time 7 sending 6 packets from server to 0. (delay_padding = 0)
+At time 7s client in node 0 sent query 1 to node 5
+rand_change = 0, resulting required image num = 6
+Node 32's server in ReceiveQuery at time 7: 
+	query from node 1
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 32) at time 7 sending 6 packets from server to 1. (delay_padding = 0)
+At time 7s client in node 1 sent query 1 to node 32
+rand_change = 0, resulting required image num = 6
+Node 49's server in ReceiveQuery at time 7: 
+	query from node 2
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 49) at time 7 sending 6 packets from server to 2. (delay_padding = 0)
+At time 7s client in node 2 sent query 1 to node 49
+rand_change = 0, resulting required image num = 6
+Node 14's server in ReceiveQuery at time 7: 
+	query from node 3
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 14) at time 7 sending 6 packets from server to 3. (delay_padding = 0)
+At time 7s client in node 3 sent query 1 to node 14
+rand_change = 0, resulting required image num = 6
+Node 3's server in ReceiveQuery at time 7: 
+	query from node 4
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 3) at time 7 sending 6 packets from server to 4. (delay_padding = 0)
+At time 7s client in node 4 sent query 1 to node 3
+rand_change = 0, resulting required image num = 6
+Node 16's server in ReceiveQuery at time 7: 
+	query from node 5
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 16) at time 7 sending 6 packets from server to 5. (delay_padding = 0)
+At time 7s client in node 5 sent query 1 to node 16
+rand_change = 0, resulting required image num = 6
+Node 8's server in ReceiveQuery at time 7: 
+	query from node 6
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 8) at time 7 sending 6 packets from server to 6. (delay_padding = 0)
+At time 7s client in node 6 sent query 1 to node 8
+rand_change = 0, resulting required image num = 6
+Node 48's server in ReceiveQuery at time 7: 
+	query from node 7
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 48) at time 7 sending 6 packets from server to 7. (delay_padding = 0)
+At time 7s client in node 7 sent query 1 to node 48
+rand_change = 0, resulting required image num = 6
+Node 43's server in ReceiveQuery at time 7: 
+	query from node 8
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 43) at time 7 sending 6 packets from server to 8. (delay_padding = 0)
+At time 7s client in node 8 sent query 1 to node 43
+rand_change = 0, resulting required image num = 6
+Node 45's server in ReceiveQuery at time 7: 
+	query from node 9
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 45) at time 7 sending 6 packets from server to 9. (delay_padding = 0)
+At time 7s client in node 9 sent query 1 to node 45
+rand_change = 0, resulting required image num = 6
+Node 22's server in ReceiveQuery at time 7: 
+	query from node 10
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 22) at time 7 sending 6 packets from server to 10. (delay_padding = 0)
+At time 7s client in node 10 sent query 1 to node 22
+rand_change = 0, resulting required image num = 6
+Node 27's server in ReceiveQuery at time 7: 
+	query from node 11
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 27) at time 7 sending 6 packets from server to 11. (delay_padding = 0)
+At time 7s client in node 11 sent query 1 to node 27
+rand_change = 0, resulting required image num = 6
+Node 32's server in ReceiveQuery at time 7: 
+	query from node 12
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 32) at time 7 sending 6 packets from server to 12. (delay_padding = 0)
+At time 7s client in node 12 sent query 1 to node 32
+rand_change = 0, resulting required image num = 6
+Node 42's server in ReceiveQuery at time 7: 
+	query from node 13
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 42) at time 7 sending 6 packets from server to 13. (delay_padding = 0)
+At time 7s client in node 13 sent query 1 to node 42
+rand_change = 0, resulting required image num = 6
+Node 46's server in ReceiveQuery at time 7: 
+	query from node 14
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 46) at time 7 sending 6 packets from server to 14. (delay_padding = 0)
+At time 7s client in node 14 sent query 1 to node 46
+rand_change = 0, resulting required image num = 6
+Node 38's server in ReceiveQuery at time 7: 
+	query from node 15
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 38) at time 7 sending 6 packets from server to 15. (delay_padding = 0)
+At time 7s client in node 15 sent query 1 to node 38
+rand_change = 0, resulting required image num = 6
+Node 8's server in ReceiveQuery at time 7: 
+	query from node 16
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 8) at time 7 sending 6 packets from server to 16. (delay_padding = 0)
+At time 7s client in node 16 sent query 1 to node 8
+rand_change = 0, resulting required image num = 6
+Node 18's server in ReceiveQuery at time 7: 
+	query from node 17
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 18) at time 7 sending 6 packets from server to 17. (delay_padding = 0)
+At time 7s client in node 17 sent query 1 to node 18
+rand_change = 0, resulting required image num = 6
+Node 36's server in ReceiveQuery at time 7: 
+	query from node 18
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 36) at time 7 sending 6 packets from server to 18. (delay_padding = 0)
+At time 7s client in node 18 sent query 1 to node 36
+rand_change = 0, resulting required image num = 6
+Node 13's server in ReceiveQuery at time 7: 
+	query from node 19
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 13) at time 7 sending 6 packets from server to 19. (delay_padding = 0)
+At time 7s client in node 19 sent query 1 to node 13
+rand_change = 0, resulting required image num = 6
+Node 34's server in ReceiveQuery at time 7: 
+	query from node 20
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 34) at time 7 sending 6 packets from server to 20. (delay_padding = 0)
+At time 7s client in node 20 sent query 1 to node 34
+rand_change = 0, resulting required image num = 6
+Node 36's server in ReceiveQuery at time 7: 
+	query from node 21
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 36) at time 7 sending 6 packets from server to 21. (delay_padding = 0)
+At time 7s client in node 21 sent query 1 to node 36
+rand_change = 0, resulting required image num = 6
+Node 0's server in ReceiveQuery at time 7: 
+	query from node 22
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 0) at time 7 sending 6 packets from server to 22. (delay_padding = 0)
+At time 7s client in node 22 sent query 1 to node 0
+rand_change = 0, resulting required image num = 6
+Node 48's server in ReceiveQuery at time 7: 
+	query from node 23
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 48) at time 7 sending 6 packets from server to 23. (delay_padding = 0)
+At time 7s client in node 23 sent query 1 to node 48
+rand_change = 0, resulting required image num = 6
+Node 25's server in ReceiveQuery at time 7: 
+	query from node 24
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 25) at time 7 sending 6 packets from server to 24. (delay_padding = 0)
+At time 7s client in node 24 sent query 1 to node 25
+rand_change = 0, resulting required image num = 6
+Node 21's server in ReceiveQuery at time 7: 
+	query from node 25
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 21) at time 7 sending 6 packets from server to 25. (delay_padding = 0)
+At time 7s client in node 25 sent query 1 to node 21
+rand_change = 0, resulting required image num = 6
+Node 29's server in ReceiveQuery at time 7: 
+	query from node 26
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 29) at time 7 sending 6 packets from server to 26. (delay_padding = 0)
+At time 7s client in node 26 sent query 1 to node 29
+rand_change = 0, resulting required image num = 6
+Node 43's server in ReceiveQuery at time 7: 
+	query from node 27
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 43) at time 7 sending 6 packets from server to 27. (delay_padding = 0)
+At time 7s client in node 27 sent query 1 to node 43
+rand_change = 0, resulting required image num = 6
+Node 15's server in ReceiveQuery at time 7: 
+	query from node 28
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 15) at time 7 sending 6 packets from server to 28. (delay_padding = 0)
+At time 7s client in node 28 sent query 1 to node 15
+rand_change = 0, resulting required image num = 6
+Node 45's server in ReceiveQuery at time 7: 
+	query from node 29
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 45) at time 7 sending 6 packets from server to 29. (delay_padding = 0)
+At time 7s client in node 29 sent query 1 to node 45
+rand_change = 0, resulting required image num = 6
+Node 20's server in ReceiveQuery at time 7: 
+	query from node 30
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 20) at time 7 sending 6 packets from server to 30. (delay_padding = 0)
+At time 7s client in node 30 sent query 1 to node 20
+rand_change = 0, resulting required image num = 6
+Node 5's server in ReceiveQuery at time 7: 
+	query from node 31
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 5) at time 7 sending 6 packets from server to 31. (delay_padding = 0)
+At time 7s client in node 31 sent query 1 to node 5
+rand_change = 0, resulting required image num = 6
+Node 42's server in ReceiveQuery at time 7: 
+	query from node 32
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 42) at time 7 sending 6 packets from server to 32. (delay_padding = 0)
+At time 7s client in node 32 sent query 1 to node 42
+rand_change = 0, resulting required image num = 6
+Node 10's server in ReceiveQuery at time 7: 
+	query from node 33
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 10) at time 7 sending 6 packets from server to 33. (delay_padding = 0)
+At time 7s client in node 33 sent query 1 to node 10
+rand_change = 0, resulting required image num = 6
+Node 13's server in ReceiveQuery at time 7: 
+	query from node 34
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 13) at time 7 sending 6 packets from server to 34. (delay_padding = 0)
+At time 7s client in node 34 sent query 1 to node 13
+rand_change = 0, resulting required image num = 6
+Node 34's server in ReceiveQuery at time 7: 
+	query from node 35
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 34) at time 7 sending 6 packets from server to 35. (delay_padding = 0)
+At time 7s client in node 35 sent query 1 to node 34
+rand_change = 0, resulting required image num = 6
+Node 8's server in ReceiveQuery at time 7: 
+	query from node 36
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 8) at time 7 sending 6 packets from server to 36. (delay_padding = 0)
+At time 7s client in node 36 sent query 1 to node 8
+rand_change = 0, resulting required image num = 6
+Node 45's server in ReceiveQuery at time 7: 
+	query from node 37
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 45) at time 7 sending 6 packets from server to 37. (delay_padding = 0)
+At time 7s client in node 37 sent query 1 to node 45
+rand_change = 0, resulting required image num = 6
+Node 30's server in ReceiveQuery at time 7: 
+	query from node 38
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 30) at time 7 sending 6 packets from server to 38. (delay_padding = 0)
+At time 7s client in node 38 sent query 1 to node 30
+rand_change = 0, resulting required image num = 6
+Node 48's server in ReceiveQuery at time 7: 
+	query from node 39
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 48) at time 7 sending 6 packets from server to 39. (delay_padding = 0)
+At time 7s client in node 39 sent query 1 to node 48
+rand_change = 0, resulting required image num = 6
+Node 39's server in ReceiveQuery at time 7: 
+	query from node 40
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 39) at time 7 sending 6 packets from server to 40. (delay_padding = 0)
+At time 7s client in node 40 sent query 1 to node 39
+rand_change = 0, resulting required image num = 6
+Node 5's server in ReceiveQuery at time 7: 
+	query from node 41
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 5) at time 7 sending 6 packets from server to 41. (delay_padding = 0)
+At time 7s client in node 41 sent query 1 to node 5
+rand_change = 0, resulting required image num = 6
+Node 10's server in ReceiveQuery at time 7: 
+	query from node 42
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 10) at time 7 sending 6 packets from server to 42. (delay_padding = 0)
+At time 7s client in node 42 sent query 1 to node 10
+rand_change = 0, resulting required image num = 6
+Node 12's server in ReceiveQuery at time 7: 
+	query from node 43
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 12) at time 7 sending 6 packets from server to 43. (delay_padding = 0)
+At time 7s client in node 43 sent query 1 to node 12
+rand_change = 0, resulting required image num = 6
+Node 21's server in ReceiveQuery at time 7: 
+	query from node 44
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 21) at time 7 sending 6 packets from server to 44. (delay_padding = 0)
+At time 7s client in node 44 sent query 1 to node 21
+rand_change = 0, resulting required image num = 6
+Node 44's server in ReceiveQuery at time 7: 
+	query from node 45
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 44) at time 7 sending 6 packets from server to 45. (delay_padding = 0)
+At time 7s client in node 45 sent query 1 to node 44
+rand_change = 0, resulting required image num = 6
+Node 1's server in ReceiveQuery at time 7: 
+	query from node 46
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 1) at time 7 sending 6 packets from server to 46. (delay_padding = 0)
+At time 7s client in node 46 sent query 1 to node 1
+rand_change = 0, resulting required image num = 6
+Node 13's server in ReceiveQuery at time 7: 
+	query from node 47
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 13) at time 7 sending 6 packets from server to 47. (delay_padding = 0)
+At time 7s client in node 47 sent query 1 to node 13
+rand_change = 0, resulting required image num = 6
+Node 27's server in ReceiveQuery at time 7: 
+	query from node 48
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 27) at time 7 sending 6 packets from server to 48. (delay_padding = 0)
+At time 7s client in node 48 sent query 1 to node 27
+rand_change = 0, resulting required image num = 6
+Node 0's server in ReceiveQuery at time 7: 
+	query from node 49
+	query_id = 1
+	num_images_rqstd = 6
+Server (Node 0) at time 7 sending 6 packets from server to 49. (delay_padding = 0)
+At time 7s client in node 49 sent query 1 to node 0
