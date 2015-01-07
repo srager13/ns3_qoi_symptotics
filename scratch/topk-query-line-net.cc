@@ -112,7 +112,7 @@ int main (int argc, char *argv[])
   {
     numNodes = (2.0*(channelRate*1000000)*timeliness)/(3.0*num_images*imageSizeKBytes*8000) - 2;
     // dividing by two to get closer to actual experimental results seen so far...nothing to do with analysis
-    numNodes = numNodes/2.0;
+    numNodes = numNodes/1.25;
   }
 	if( numNodes < minNumNodes )
 		numNodes = minNumNodes;
@@ -456,6 +456,11 @@ int main (int argc, char *argv[])
     server.SetAttribute("DelayPadding", DoubleValue(delayPadding));
     server.SetAttribute("ChannelRate", DoubleValue(channelRate));
     server.SetAttribute ("Timeliness", TimeValue (Seconds(timeliness)));
+    server.SetAttribute ("RunTime", TimeValue (Seconds(runTime)));
+    server.SetAttribute ("OneFlow", BooleanValue(oneFlow));
+    server.SetAttribute ("SumSimFilename", StringValue (sumSimFilename));
+    server.SetAttribute ("SumSimilarity", DoubleValue (sumSimilarity));
+    server.SetAttribute ("NumPacketsPerImage", IntegerValue (numPacketsPerImage));
     ApplicationContainer apps = server.Install (c);
     apps.Start (Seconds (1.0));
     apps.Stop (Seconds (runTime-100.0));
@@ -554,9 +559,17 @@ int main (int argc, char *argv[])
     }
 
     first_run = false;
+
+    // to exit after one run (for debug purposes), uncomment the following line
+    //found_limit = true;
   }
 
-  sprintf(buf, "%s/Scalability.csv", dataFilePath_2.c_str());
+  if( satAllQueries )
+    sprintf(buf, "%s/Scalability_satAllQueries.csv", dataFilePath_2.c_str());
+  else if( oneFlow )
+    sprintf(buf, "%s/Scalability_oneFlow.csv", dataFilePath_2.c_str());
+  else
+    sprintf(buf, "%s/Scalability.csv", dataFilePath_2.c_str());
   std::ofstream scal_file;
   scal_file.open( buf, std::ofstream::app );
   scal_file << sumSimilarity << ", " << timeliness << ", " << lastNumNodes << "\n";

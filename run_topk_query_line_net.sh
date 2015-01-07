@@ -1,10 +1,10 @@
 #runTime=500 # set below
-numNodes=500
+numNodes=0
 #sumSimilarity=10.0 # set below
-timeliness=10
+timeliness=40
 #tracing="true"
 tracing="false"
-imageSizeKBytes=10
+imageSizeKBytes=50
 packetSizeBytes=1463
 delayPadding=0.0
 dataFilePath="./vary_sum_sim"
@@ -14,12 +14,12 @@ runSeed=1
 numRuns=1
 numPacketsPerImage=$( bc <<< "($imageSizeKBytes * 1000)/$packetSizeBytes" )
 channelRate=2
-oneFlow=true
+oneFlow=false
 satAllQueries=true
 
 numQueries=100
 runTime=$(( $(($timeliness + 5))*$numQueries))
-runTime=1000
+runTime=2000
 
 echo "run time = $runTime"
 

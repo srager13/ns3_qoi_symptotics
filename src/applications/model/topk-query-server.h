@@ -23,8 +23,9 @@
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"
 #include "ns3/address.h"
+#include "ns3/random-variable-stream.h"
 
-#define TOPK_QUERY_SERVER_DEBUG 1
+#define TOPK_QUERY_SERVER_DEBUG 0
 
 namespace ns3 {
 
@@ -53,7 +54,8 @@ public:
   TopkQueryServer ();
   virtual ~TopkQueryServer ();
   
-  void ReceiveQuery( uint16_t node_from, uint16_t query_id, uint16_t num_images_rqstd );
+  void StartNewSession();
+  //void ReceiveQuery( uint16_t node_from, uint16_t query_id, uint16_t num_images_rqstd );
 
 
 protected:
@@ -61,29 +63,53 @@ protected:
 
 private:
 
+  void Init(); 
+
   virtual void StartApplication (void);
   virtual void StopApplication (void);
 
   void HandleRead (Ptr<Socket> socket);
 
-  void ScheduleTrx (uint16_t from, int num_images_rqstd, int query_id); 
-  //void SendPacket (Ptr<Socket> socket, Address from, int packetNum, int num_images_rqstd, int query_id); 
-  void SendPacket (uint16_t from, int packetNum, int num_images_rqstd, int query_id); 
+  void ScheduleTrx (uint16_t from, int num_packets_rqstd, int query_id); 
+  //void SendPacket (Ptr<Socket> socket, Address from, int packetNum, int num_packets_rqstd, int query_id); 
+  void SendPacket (uint16_t from, int packetNum, int num_packets_rqstd, int query_id); 
 
   void PopulateArpCache();
+  
+  void UpdateQueryIds ()
+  {
+    if( query_ids == 65000 )
+    {
+      query_ids = 1;
+    }
+    else
+    {
+      query_ids++;
+    }
+  }
 
   EventId m_sendEvent;
 
+  uint16_t query_ids;
   uint16_t m_port; //!< Port on which we listen for incoming packets.
   uint16_t image_size_kbytes; // size in bytes of each image
-  uint16_t packet_size_bytes; // size in bytes of each image
+  uint16_t packet_size_bytes; // size in bytes of each packet
   uint16_t num_nodes;
+  int avg_num_packets_rqrd;
   double delay_padding; // delay time (in seconds) that server waits after sending each image to ensure no loss 
   double channel_rate; // in Mbps
   std::vector<Ptr<Socket> > m_socket; //!< Socket
   //Ptr<Socket> m_socket6; //!< IPv6 Socket
   Address m_local; //!< local multicast address
   Time timeliness;
+  Time run_time;
+
+  bool one_flow;
+  std::string SumSimFilename;
+  int num_packets_per_image;
+  double sum_similarity;
+
+  Ptr<UniformRandomVariable> rand_dest;
 };
 
 } // namespace ns3

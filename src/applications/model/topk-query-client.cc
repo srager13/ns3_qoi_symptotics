@@ -134,7 +134,6 @@ TopkQueryClient::TopkQueryClient () :
   run_time(Time("100s"))
 {
   NS_LOG_FUNCTION (this);
-  m_sent = 0;
   m_sendEvent = EventId ();
   m_data = 0;
   num_queries_issued = 0;
@@ -142,14 +141,11 @@ TopkQueryClient::TopkQueryClient () :
   num_queries_unanswered = 0;
   num_packets_rcvd_late = 0;
   num_packets_rcvd = 0;
-  query_ids = 1;
   num_packets_dropped = 0;
   sum_number_flows = 0.0;
   num_times_counted_flows = 0.0;
   avg_queue_size = 0.0;
   max_q_size = 0;
-
-  rand_dest = CreateObject<UniformRandomVariable>();
 
   rand_ss_dist = CreateObject<NormalRandomVariable>();
   rand_ss_dist->SetAttribute("Mean", DoubleValue(0));
@@ -187,23 +183,23 @@ TopkQueryClient::Init()
   {
     bool found_requ = false;
     double sum_sim;
-    int num_images;
+    int num_packets;
     while( sumsim_fd.good() )
     {
       sumsim_fd.getline( buf, 32, ',' );  
       char *pEnd;
       sum_sim = strtod(buf,&pEnd);
       sumsim_fd.getline( buf, 32, '\n' );  
-      num_images = num_packets_per_image*(int)strtod(buf,&pEnd);
+      num_packets = num_packets_per_image*(int)strtod(buf,&pEnd);
    
       if( TOPK_QUERY_CLIENT_DEBUG )
       {
-        std::cout<<"From file: sum_sim = " << sum_sim << ", num_images = " << num_images <<" (input sum similarity = " << sum_similarity << ")\n";
+        std::cout<<"From file: sum_sim = " << sum_sim << ", num_packets = " << num_packets <<" (input sum similarity = " << sum_similarity << ")\n";
       }
 
       if( sum_sim >= sum_similarity )
       {
-        avg_num_packets_rqrd = num_images;
+        avg_num_packets_rqrd = num_packets;
         if( TOPK_QUERY_CLIENT_DEBUG )
         {
           std::cout<<"Found requirement. Setting avg_num_packets_rqrd to " << avg_num_packets_rqrd << "\n";
@@ -212,10 +208,11 @@ TopkQueryClient::Init()
         break;
       }
     }
+    sumsim_fd.close();
     if( !found_requ )
     {
       avg_num_packets_rqrd = 10;
-      std::cout << "Error: didn't find valid requirement in file...setting average number of images to default ("<<avg_num_packets_rqrd << ")\n";
+      std::cout << "Error: didn't find valid requirement in file...setting average number of packets to default ("<<avg_num_packets_rqrd << ")\n";
     }
   }
 
@@ -225,7 +222,6 @@ TopkQueryClient::Init()
     std::cout<<"Scheduling PrintStats with delay = " << delay.GetSeconds() << "...run_time = " << run_time.GetSeconds() << "\n";
   }
   Simulator::Schedule( delay, &TopkQueryClient::PrintStats, this );
-  
 }
 
 TopkQueryClient::~TopkQueryClient()
@@ -288,13 +284,6 @@ TopkQueryClient::StartApplication (void)
 
   m_socket->SetRecvCallback (MakeCallback (&TopkQueryClient::HandleRead, this));
 
-  //Time next = timeliness + Seconds(rand_interval->GetValue());
-  //Time next = timeliness;
-  Time next = Seconds(5);
-  if( next.GetSeconds() < 0.0 )
-    next = timeliness;
-  ScheduleTransmit (next);
-
   Simulator::Schedule (Seconds(1), &TopkQueryClient::CheckForTimedOutQueries, this);
 }
 
@@ -315,136 +304,32 @@ TopkQueryClient::StopApplication ()
 
 
 void 
-TopkQueryClient::ScheduleTransmit (Time dt)
+TopkQueryClient::CreateNewActiveQuery ( uint16_t server_node, uint16_t query_id, uint16_t num_packets_rqstd )
 {
-  if( Simulator::Now() + timeliness < run_time - Seconds(110) ) // adding 10 seconds for buffer
-  {
-    //std::cout<<"Scheduling Send with delay = " << dt.GetSeconds() << "\n";
-    m_sendEvent = Simulator::Schedule (dt, &TopkQueryClient::Send, this);
-  }
-}
+  TopkQuery new_query;
+  new_query.id =  query_id;
+  new_query.server_node = server_node;
+  new_query.num_packets_rqstd = num_packets_rqstd;
+  new_query.num_packets_rcvd = 0;
+  new_query.start_time = Simulator::Now();
+  new_query.deadline = Simulator::Now() + timeliness;
+ 
+  num_queries_issued++;
 
-void 
-TopkQueryClient::Send (void)
-{
-  if( one_flow && GetNode()->GetId() != 0 )
-  {
-    return;
-  } 
-  // num images set from sum similarity requirement input.  
-  // Here we vary slightly around that number just to provide a little bit of randomness
-  int num_images_needed = avg_num_packets_rqrd; 
+  // add to list of active queries 
+  active_queries.push_back( new_query ); 
 
-  // REMOVE
-  //int rand_change =  (int)rand_ss_dist->GetValue();
-  int rand_change = 0;
-  num_images_needed += rand_change;
+  //Ptr<TopkQueryServer> svrPtr = NodeList::GetNode(dest_node)->GetApplication(0)->GetObject<TopkQueryServer>();
+  //svrPtr->ReceiveQuery( GetNode()->GetId(), new_query.id, num_images_needed );
+
+  // schedule sending next query
+  //ScheduleTransmit(timeliness);
+
   if( TOPK_QUERY_CLIENT_DEBUG )
   {
-    std::cout<<"rand_change = " << rand_change << ", resulting required image num = " << num_images_needed << "\n";
-  }
-
-  if( ALL_DEST )
-  {
-    for( uint16_t i = 0; i < num_nodes; i++ )
-    {
-      // choose random destination (not self)
-      uint16_t dest = i;
-      if( dest == GetNode()->GetId() )
-      {
-        continue;
-      }
-
-      if( one_flow )
-      {
-        std::cout<<"ERROR: Should not be both ALL_DEST and ONE_FLOW...exiting.\n";
-        exit(-1);
-      }
-     
-      TopkQuery new_query;
-      new_query.id =  query_ids;
-      new_query.server_node = dest;
-      new_query.num_images_rqstd = num_images_needed;
-      new_query.num_images_rcvd = 0;
-      new_query.start_time = Simulator::Now();
-      new_query.deadline = Simulator::Now() + timeliness;
-     
-      num_queries_issued++;
-
-      if( m_socket == 0 )
-      {
-        std::cout << "ERROR: socket[" << dest << "] == 0 in node " << GetNode()->GetId() << "\n";
-      }
-
-      uint32_t dest_node = dest;
-      
-      // add to list of active queries 
-      active_queries.push_back( new_query ); 
-
-      Ptr<TopkQueryServer> svrPtr = NodeList::GetNode(dest_node)->GetApplication(0)->GetObject<TopkQueryServer>();
-      svrPtr->ReceiveQuery( GetNode()->GetId(), new_query.id, num_images_needed );
-
-      ++m_sent;
-      if( TOPK_QUERY_CLIENT_DEBUG )
-      {
-        std::cout << "At time " << Simulator::Now ().GetSeconds () << "s client in node " << GetNode()->GetId() << 
-                     " sent query to " <<
-                     "node " << dest << "\n";
-      }
-    }
-    
-    UpdateQueryIds();
-  }
-  else
-  {
-    // choose random destination (not self)
-    uint16_t dest;
-    do
-    {
-      dest = rand_dest->GetInteger(0, num_nodes-1);
-    }while( dest == GetNode()->GetId() );
-
-    if( one_flow )
-    {
-      dest = num_nodes-1;
-    }
-   
-    TopkQuery new_query;
-    new_query.id =  query_ids;
-    new_query.server_node = dest;
-    new_query.num_images_rqstd = num_images_needed;
-    new_query.num_images_rcvd = 0;
-    new_query.start_time = Simulator::Now();
-    new_query.deadline = Simulator::Now() + timeliness;
-   
-    num_queries_issued++;
-
-    if( m_socket == 0 )
-    {
-      std::cout << "ERROR: socket[" << dest << "] == 0 in node " << GetNode()->GetId() << "\n";
-    }
-
-    uint32_t dest_node = dest;
-    
-    // add to list of active queries 
-    active_queries.push_back( new_query ); 
-    
-    UpdateQueryIds();
-
-    Ptr<TopkQueryServer> svrPtr = NodeList::GetNode(dest_node)->GetApplication(0)->GetObject<TopkQueryServer>();
-    svrPtr->ReceiveQuery( GetNode()->GetId(), new_query.id, num_images_needed );
-
-    ++m_sent;
-
-		// schedule sending next query
-    ScheduleTransmit(timeliness);
-
-    if( TOPK_QUERY_CLIENT_DEBUG )
-    {
-      std::cout << "At time " << Simulator::Now ().GetSeconds () << "s client in node " << GetNode()->GetId() << 
-                   " sent query " << new_query.id << " to " <<
-                   "node " << dest << "\n";
-    }
+    std::cout << "At time " << Simulator::Now ().GetSeconds () << "s client in node " << GetNode()->GetId() << 
+                 " created query " << new_query.id << " from " <<
+                 "node " << server_node << "\n";
   }
 }
 
@@ -462,24 +347,24 @@ TopkQueryClient::HandleRead (Ptr<Socket> socket)
       TopkQueryTag tag( -1, -1, 0, -1 );
       if( packet->RemovePacketTag(tag) )
       {
-        // find active query in the list and update images_rcvd
+        // find active query in the list and update packets_rcvd
         for( uint16_t i = 0; i < active_queries.size(); i++ )
         {
           if( active_queries[i].server_node == tag.sending_node && active_queries[i].id == tag.query_id )
           {
             found_query = true;
-            active_queries[i].num_images_rcvd++;
+            active_queries[i].num_packets_rcvd++;
            
             // check to see if past deadline or done with query.  If so, go to check query to deal with it and start new one. 
-            if( Simulator::Now() >= active_queries[i].deadline || active_queries[i].num_images_rcvd == active_queries[i].num_images_rqstd )
+            if( Simulator::Now() >= active_queries[i].deadline || active_queries[i].num_packets_rcvd == active_queries[i].num_packets_rqstd )
             {
               CheckQuery( active_queries[i].id, active_queries[i].server_node );
             }
             if( TOPK_QUERY_CLIENT_DEBUG )
             {
-		  	      std::cout<<"Node " << GetNode()->GetId() << " received return packet number " << tag.image_num << 
-                        " from " << tag.sending_node << " at time " << Simulator::Now().GetSeconds() << "\n\tso far, got " << active_queries[i].num_images_rcvd << "/" <<
-                         active_queries[i].num_images_rqstd << " of query " << active_queries[i].id << "\n";
+		  	      std::cout<<"Node " << GetNode()->GetId() << " received return packet number " << tag.packet_num << 
+                        " from " << tag.sending_node << " at time " << Simulator::Now().GetSeconds() << "\n\tso far, got " << active_queries[i].num_packets_rcvd << "/" <<
+                         active_queries[i].num_packets_rqstd << " of query " << active_queries[i].id << "\n";
             }
 
           }
@@ -488,7 +373,7 @@ TopkQueryClient::HandleRead (Ptr<Socket> socket)
         {
           if( TOPK_QUERY_CLIENT_DEBUG )
           {
-            std::cout<<"Node " << GetNode()->GetId() << " received return packet number " << tag.image_num << 
+            std::cout<<"Node " << GetNode()->GetId() << " received return packet number " << tag.packet_num << 
                       " from " << tag.sending_node << " at time " << Simulator::Now().GetSeconds() << "\n\tDid not find query " << tag.query_id << "\n";
           }
           num_packets_rcvd_late++;
@@ -521,7 +406,7 @@ TopkQueryClient::CheckQuery( uint16_t id, uint16_t server )
   }
 
   bool found_query = false;
-  // check query with id to see if it received enough images
+  // check query with id to see if it received enough packets
   for( uint16_t i = 0; i < active_queries.size(); i++ )
   {
     if( active_queries[i].server_node == server && active_queries[i].id == id )
@@ -529,18 +414,18 @@ TopkQueryClient::CheckQuery( uint16_t id, uint16_t server )
       found_query = true;
       if( TOPK_QUERY_CLIENT_DEBUG )
       {
-       std::cout<<"\tfound the query; received " << active_queries[i].num_images_rcvd << " / " << active_queries[i].num_images_rqstd << " images\n";
+       std::cout<<"\tfound the query; received " << active_queries[i].num_packets_rcvd << " / " << active_queries[i].num_packets_rqstd << " packets\n";
       }
-      double perc_rcvd = (double)active_queries[i].num_images_rcvd/(double)active_queries[i].num_images_rqstd;
-      //if( active_queries[i].num_images_rcvd >= active_queries[i].num_images_rqstd )
-      if( perc_rcvd >= 0.98 ) // consider satisfied if we get 98% of the requested number of images
+      double perc_rcvd = (double)active_queries[i].num_packets_rcvd/(double)active_queries[i].num_packets_rqstd;
+      //if( active_queries[i].num_packets_rcvd >= active_queries[i].num_packets_rqstd )
+      if( perc_rcvd >= 0.98 ) // consider satisfied if we get 98% of the requested number of packets
       {
         num_queries_satisfied++;
         sum_extra_time += active_queries[i].deadline - Simulator::Now();
         sum_query_time += Simulator::Now() - active_queries[i].start_time;
       }
 
-      if( active_queries[i].num_images_rcvd == 0 )
+      if( active_queries[i].num_packets_rcvd == 0 )
       {
         num_queries_unanswered++;
       }

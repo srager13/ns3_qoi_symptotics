@@ -178,8 +178,8 @@ TdmaMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
                 m_size << " Max Size: " << m_maxSize << "\n";
     std::cout<<"\tsending_node = " << tag.sending_node << "\n";
     std::cout<<"\tquery_id = " << tag.query_id << "\n";
-    std::cout<<"\timage_num = " << tag.image_num << "\n";
-    std::cout<<"\ttotal_num = " << tag.num_images_rqstd << "\n";
+    std::cout<<"\tpacket_num = " << tag.packet_num << "\n";
+    std::cout<<"\ttotal_num = " << tag.num_packets_rqstd << "\n";
     std::cout<<"\tdeadline = " << dl_tag.deadline << "\n";
   }
   //Cleanup ();
@@ -196,8 +196,8 @@ TdmaMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 									GetSize () << " Max Size: " << GetMaxSize () << "\n";
 			std::cout<<"\tsending_node = " << tag.sending_node << "\n";
 			std::cout<<"\tquery_id = " << tag.query_id << "\n";
-			std::cout<<"\timage_num = " << tag.image_num << "\n";
-			std::cout<<"\ttotal_num = " << tag.num_images_rqstd << "\n";
+			std::cout<<"\tpacket_num = " << tag.packet_num << "\n";
+			std::cout<<"\ttotal_num = " << tag.num_packets_rqstd << "\n";
 			std::cout<<"\tdeadline = " << dl_tag.deadline << "\n";
     }
 
@@ -214,7 +214,7 @@ TdmaMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
   {
     return true;
   }
-    // find active query in the list and update images_rcvd
+    // find active query in the list and update packets_rcvd
     //std::cout<<"Number of flows = " << flows.size() << "\n";
     for( uint16_t i = 0; i < flows.size(); i++ )
     {
@@ -225,18 +225,18 @@ TdmaMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 
         still_active[i] = true;
 
-        flows[i].num_images_rcvd++;
+        flows[i].num_packets_rcvd++;
             
         if( TDMA_MAC_QUEUE_DEBUG )
         {
           std::cout<<"Node " << node_id << ": Found flow (adding to packets_rcvd):\n";
           std::cout<<"\tsending node = " << flows[i].server_node << "\n";
           std::cout<<"\tquery id = " << flows[i].id << "\n";
-          std::cout<<"\treceived images = " << flows[i].num_images_rcvd << " / " << flows[i].num_images_rqstd << "\n";
+          std::cout<<"\treceived packets = " << flows[i].num_packets_rcvd << " / " << flows[i].num_packets_rqstd << "\n";
         }
        
         // check to see if past deadline or done with query.  If so, go to check query to deal with it and start new one. 
-        //if( flows[i].num_images_rcvd == flows[i].num_images_rqstd )
+        //if( flows[i].num_packets_rcvd == flows[i].num_packets_rqstd )
         if( Simulator::Now() > flows[i].deadline )
         {
           // remove query
@@ -268,8 +268,8 @@ TdmaMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
       TopkQuery new_query;
       new_query.id =  tag.query_id;
       new_query.server_node = tag.sending_node;
-      new_query.num_images_rqstd = tag.num_images_rqstd;
-      new_query.num_images_rcvd = 1;
+      new_query.num_packets_rqstd = tag.num_packets_rqstd;
+      new_query.num_packets_rcvd = 1;
       new_query.start_time = Simulator::Now();
       new_query.deadline = Seconds(dl_tag.deadline);
           

@@ -33,7 +33,7 @@
 #include <vector>
 
 //#define SMALL_QUEUES 0
-#define TOPK_QUERY_CLIENT_DEBUG 1
+#define TOPK_QUERY_CLIENT_DEBUG 0
 #define ALL_DEST 0
 
 namespace ns3 {
@@ -45,8 +45,8 @@ struct TopkQuery
 {
   uint16_t id;
   uint16_t server_node;
-  uint16_t num_images_rqstd;
-  uint16_t num_images_rcvd;
+  uint16_t num_packets_rqstd;
+  uint16_t num_packets_rcvd;
   Time start_time;
   Time deadline;
 };
@@ -90,9 +90,9 @@ struct QueryDeadlineTag : public Tag
 
 struct TopkQueryTag : public Tag
 {
-  int query_id, num_images_rqstd, image_num, sending_node;
+  int query_id, num_packets_rqstd, packet_num, sending_node;
 
-  TopkQueryTag ( int new_query_id = -1, int new_num_images_rqstd = -1, int new_image_num = 0, int sn = 0 ) : Tag(), query_id(new_query_id), num_images_rqstd(new_num_images_rqstd), image_num(new_image_num), sending_node(sn) {}
+  TopkQueryTag ( int new_query_id = -1, int new_num_packets_rqstd = -1, int new_packet_num = 0, int sn = 0 ) : Tag(), query_id(new_query_id), num_packets_rqstd(new_num_packets_rqstd), packet_num(new_packet_num), sending_node(sn) {}
 
   static TypeId GetTypeId()
   {
@@ -113,22 +113,22 @@ struct TopkQueryTag : public Tag
   void Serialize (TagBuffer i) const
   {
     i.WriteU32 (query_id);
-    i.WriteU32 (num_images_rqstd);
-    i.WriteU32 (image_num);
+    i.WriteU32 (num_packets_rqstd);
+    i.WriteU32 (packet_num);
     i.WriteU32 (sending_node);
   }
   
   void Deserialize (TagBuffer i) 
   {
     query_id = i.ReadU32 ();
-    num_images_rqstd = i.ReadU32 ();
-    image_num = i.ReadU32 ();
+    num_packets_rqstd = i.ReadU32 ();
+    packet_num = i.ReadU32 ();
     sending_node = i.ReadU32 ();
   }
   
   void Print (std::ostream &os) const
   {
-    os << "TopkQueryTag: [query_id, num_images_rqstd, image_num, sending_node] = [" << query_id << "," << num_images_rqstd << "," << image_num  << "," << sending_node << "]\n";
+    os << "TopkQueryTag: [query_id, num_packets_rqstd, packet_num, sending_node] = [" << query_id << "," << num_packets_rqstd << "," << packet_num  << "," << sending_node << "]\n";
   }
 
 };
@@ -265,6 +265,8 @@ public:
 
   void UpdateQueueStats( double avg_q_size, uint32_t current_q_size, double sum_num_flows, double num_times_counted );
 
+  void CreateNewActiveQuery ( uint16_t dest, uint16_t query_id, uint16_t num_packets_rqstd );
+
 protected:
   virtual void DoDispose (void);
 
@@ -275,14 +277,6 @@ private:
   virtual void StartApplication (void);
   virtual void StopApplication (void);
 
-  /**
-   * \brief Schedule the next packet transmission
-   * \param dt time interval between packets.
-   */
-  /**
-   * \brief Send a packet
-   */
-  void Send (void);
 
   /**
    * \brief Handle a packet reception.
@@ -297,23 +291,11 @@ private:
   void CheckForTimedOutQueries ( ); 
   void PrintStats();
 
-  void UpdateQueryIds ()
-  {
-    if( query_ids == 65000 )
-    {
-      query_ids = 1;
-    }
-    else
-    {
-      query_ids++;
-    }
-  }
 
   double sum_similarity;
 
   uint8_t *m_data; //!< packet payload data
 
-  uint32_t m_sent; //!< Counter for sent packets
   //std::vector<Ptr<Socket> > m_socket; //!< Socket
   Ptr<Socket> m_socket; //!< Socket
   Address m_peerAddress; //!< Remote peer address
@@ -345,7 +327,6 @@ private:
   int num_packets_per_image;
 
   std::vector<TopkQuery> active_queries;
-  uint16_t query_ids;
   uint16_t num_packets_dropped;
   // Queue stats:
   double sum_number_flows;
@@ -359,7 +340,6 @@ private:
 
   //Ptr<NormalRandomVariable> rand_interval;
   Ptr<ExponentialRandomVariable> rand_interval;
-  Ptr<UniformRandomVariable> rand_dest;
   Ptr<NormalRandomVariable> rand_ss_dist;
 };
 

@@ -1,5 +1,5 @@
 #runTime=500 # set below
-numNodes=50
+numNodes=25
 #sumSimilarity=10.0 # set below
 timeliness=10
 #tracing="true"
