@@ -25,7 +25,6 @@
 #include "ns3/address.h"
 #include "ns3/random-variable-stream.h"
 
-#define TOPK_QUERY_SERVER_DEBUG 0
 
 namespace ns3 {
 
@@ -105,6 +104,9 @@ private:
   Time run_time;
 
   bool one_flow;
+  bool TOPK_QUERY_SERVER_DEBUG;
+  uint16_t source_node;
+  uint16_t dest_node;
   std::string SumSimFilename;
   int num_packets_per_image;
   double sum_similarity;

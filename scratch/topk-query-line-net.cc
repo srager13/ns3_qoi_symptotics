@@ -54,9 +54,11 @@ NS_LOG_COMPONENT_DEFINE ("TopkQueryExample");
 
 using namespace ns3;
   
-bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow );
+bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow, int numNodes );
 
 int FindNumImages( std::string SumSimFilename, double sum_similarity );
+
+int FindInitialGuess( std::string InitialGuessFilename, double sum_similarity, double timeliness );
 
 int main (int argc, char *argv[])
 {
@@ -70,18 +72,24 @@ int main (int argc, char *argv[])
   double timeliness = 5.0;
   bool tracing = false;
 	uint64_t imageSizeKBytes = 2000;
-	uint64_t packetSizeBytes = 2000;
+	uint64_t packetSizeBytes = 1500;
   double delayPadding;
   std::string dataFilePath;
   std::string dataFilePath_2;
   std::string sumSimFilename;
+  std::string initGuessFilename;
   int runSeed = 1;
   int numRuns = 1;
   int numPacketsPerImage = 1;
   double channelRate = 2; // in Mbps
   bool oneFlow = false;
+  bool clientDebug = false;
+  bool serverDebug = false;
+  uint16_t sourceNode = 0;
+  uint16_t destNode = 3;
   double q_comp_thresh = 0.9;
   bool satAllQueries = false;
+  bool runOnceDebug = false;
 
   CommandLine cmd;
 
@@ -97,12 +105,18 @@ int main (int argc, char *argv[])
   cmd.AddValue ("dataFilePath", "Path to print stats file to.", dataFilePath);
   cmd.AddValue ("dataFilePath_2", "Path to print stats file to.", dataFilePath_2);
   cmd.AddValue ("sumSimFilename", "Name of file to get sum similarity packet numbers from.", sumSimFilename);
+  cmd.AddValue ("initGuessFilename", "Name of file to get initial guesses of network size from.", initGuessFilename);
   cmd.AddValue ("runSeed", "Seed to set the random number generator.", runSeed);
   cmd.AddValue ("numRuns", "Total number of trials.", numRuns);
   cmd.AddValue ("numPacketsPerImage", "Number of packets neeed to send each image.", numPacketsPerImage);
   cmd.AddValue ("channelRate", "Rate of each wireless channel (in Mbps).", channelRate);
   cmd.AddValue ("oneFlow", "True to only send one flow from last node to first node for testing.", oneFlow);
+  cmd.AddValue ("clientDebug", "", clientDebug);
+  cmd.AddValue ("serverDebug", "", serverDebug);
+  cmd.AddValue ("sourceNode", "Source node for one flow test.", sourceNode);
+  cmd.AddValue ("destNode", "Destination node for one flow test.", destNode);
   cmd.AddValue ("satAllQueries", "Set true to set scalability defined by all nodes satisfying queries, not average.", satAllQueries);
+  cmd.AddValue ("runOnceDebug", "Set true to only run one time for debug purposes...will not find scalability limit.", runOnceDebug);
 
   cmd.Parse (argc, argv);
 
@@ -110,13 +124,23 @@ int main (int argc, char *argv[])
   int num_images = FindNumImages( sumSimFilename, sumSimilarity );
   if( numNodes == 0 )
   {
-    numNodes = (2.0*(channelRate*1000000)*timeliness)/(3.0*num_images*imageSizeKBytes*8000) - 2;
+    numNodes = FindInitialGuess( initGuessFilename, sumSimilarity, timeliness );
+    //numNodes = (2.0*(channelRate*1000000)*timeliness)/(3.0*num_images*imageSizeKBytes*8000) - 2;
     // dividing by two to get closer to actual experimental results seen so far...nothing to do with analysis
-    numNodes = numNodes/1.25;
+    //numNodes = numNodes/1.25;
   }
 	if( numNodes < minNumNodes )
 		numNodes = minNumNodes;
   std::cout<<"Initial guess = " << numNodes << ", num images = " << num_images <<"\n";
+
+  if( sourceNode == 0 && destNode == 0 )
+  {
+    destNode = numNodes-1;
+  }
+  else if( destNode == 0 && sourceNode == 1 ) // to set the last node as the source (and first as dest), set sourceNode to 1
+  {
+    sourceNode = numNodes-1;
+  }
 
   bool found_limit = false;
   bool last_trial_scalable = false;
@@ -126,6 +150,7 @@ int main (int argc, char *argv[])
 
   while( !found_limit )
   {
+    std::cout<<"Testing " << numNodes <<", source node = " << sourceNode <<", dest node = " << destNode << "\n";
     // clear stats file
     sprintf(buf, "%s/TopkQueryClientStats.csv", dataFilePath.c_str());
     std::ofstream stats_file;
@@ -156,7 +181,8 @@ int main (int argc, char *argv[])
     sprintf(buf, "%ib/s", (int)channelRate*1000000);
     std::cout<<"Channel rate = " << buf << "\n";
     controller.Set ("DataRate", DataRateValue (DataRate(buf))); // Mbps
-    double slot_time = ((packetSizeBytes+40)*8.0)/(channelRate*1000000);
+    double slot_time = ((packetSizeBytes)*8.0)/(channelRate*1000000);
+    std::cout<<"Slot time = " << slot_time << "\n";
     controller.Set("SlotTime", TimeValue(Seconds(slot_time))); // time to transmit one 1400 byte packet at 2Mbps is 5600 uSec
     controller.Set ("GaurdTime", TimeValue (MicroSeconds (0)));
     controller.Set ("InterFrameTime", TimeValue (MicroSeconds (0)));
@@ -451,13 +477,16 @@ int main (int argc, char *argv[])
     uint16_t port = 9;  // well-known echo port number
     TopkQueryServerHelper server (port);
     server.SetAttribute("ImageSizeKBytes", UintegerValue(imageSizeKBytes));
-    server.SetAttribute("PacketSizeBytes", UintegerValue(packetSizeBytes));
+    server.SetAttribute("PacketSizeBytes", UintegerValue(packetSizeBytes-50));
     server.SetAttribute("NumNodes", UintegerValue(numNodes));
     server.SetAttribute("DelayPadding", DoubleValue(delayPadding));
     server.SetAttribute("ChannelRate", DoubleValue(channelRate));
     server.SetAttribute ("Timeliness", TimeValue (Seconds(timeliness)));
     server.SetAttribute ("RunTime", TimeValue (Seconds(runTime)));
     server.SetAttribute ("OneFlow", BooleanValue(oneFlow));
+    server.SetAttribute ("ServerDebug", BooleanValue(serverDebug));
+    server.SetAttribute ("SourceNode", UintegerValue(sourceNode));
+    server.SetAttribute ("DestNode", UintegerValue(destNode));
     server.SetAttribute ("SumSimFilename", StringValue (sumSimFilename));
     server.SetAttribute ("SumSimilarity", DoubleValue (sumSimilarity));
     server.SetAttribute ("NumPacketsPerImage", IntegerValue (numPacketsPerImage));
@@ -477,13 +506,14 @@ int main (int argc, char *argv[])
     client.SetAttribute ("DataFilePath", StringValue (dataFilePath));
     client.SetAttribute ("SumSimFilename", StringValue (sumSimFilename));
     client.SetAttribute ("ImageSizeKBytes", UintegerValue (imageSizeKBytes));
-    client.SetAttribute ("PacketSizeBytes", UintegerValue (packetSizeBytes));
+    client.SetAttribute ("PacketSizeBytes", UintegerValue (packetSizeBytes-50));
     client.SetAttribute ("RunTime", TimeValue (Seconds(runTime)));
     client.SetAttribute ("RunSeed", UintegerValue (runSeed));
     client.SetAttribute ("NumRuns", UintegerValue (numRuns));
     client.SetAttribute ("NumPacketsPerImage", IntegerValue (numPacketsPerImage));
     client.SetAttribute ("ChannelRate", DoubleValue (channelRate));
     client.SetAttribute ("OneFlow", BooleanValue(oneFlow));
+    client.SetAttribute ("ClientDebug", BooleanValue(clientDebug));
     apps = client.Install(c);
     apps.Start (Seconds (2.0));
     apps.Stop (Seconds (runTime-100.0));
@@ -502,7 +532,7 @@ int main (int argc, char *argv[])
     //flowMonitor->SerializeToXmlFile("Topk-query-flow-monitor.xml", true, true);
     Simulator::Destroy ();
 
-    bool this_trial_scalable = IsScalable( dataFilePath, q_comp_thresh, satAllQueries, oneFlow );
+    bool this_trial_scalable = IsScalable( dataFilePath, q_comp_thresh, satAllQueries, oneFlow, numNodes );
 
     if( this_trial_scalable )
     {
@@ -552,22 +582,34 @@ int main (int argc, char *argv[])
     
     last_trial_scalable = this_trial_scalable;
 
-    if( lastNumNodes < minNumNodes )
+    if( lastNumNodes < minNumNodes && !this_trial_scalable )
     {
       lastNumNodes = 0;
       found_limit = true;
     }
 
+    if( destNode == lastNumNodes-1 )
+    {
+      destNode = numNodes-1;
+    }
+    if( sourceNode == lastNumNodes-1 )
+    {
+      sourceNode = numNodes-1;
+    }
+
     first_run = false;
 
-    // to exit after one run (for debug purposes), uncomment the following line
-    //found_limit = true;
+    // to exit after one run (for debug purposes)
+    if( runOnceDebug )
+    {
+      found_limit = true;
+    }
   }
 
-  if( satAllQueries )
-    sprintf(buf, "%s/Scalability_satAllQueries.csv", dataFilePath_2.c_str());
-  else if( oneFlow )
+  if( oneFlow )
     sprintf(buf, "%s/Scalability_oneFlow.csv", dataFilePath_2.c_str());
+  else if( satAllQueries )
+    sprintf(buf, "%s/Scalability_satAllQueries.csv", dataFilePath_2.c_str());
   else
     sprintf(buf, "%s/Scalability.csv", dataFilePath_2.c_str());
   std::ofstream scal_file;
@@ -577,7 +619,7 @@ int main (int argc, char *argv[])
   return 0;
 }
 
-bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow )
+bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow, int numNodes )
 {
   std::vector< std::vector<double> > stats;  
   char buf[1024];
@@ -604,14 +646,6 @@ bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQuer
   }
 	stats_file.close();
 
-  if( oneFlow )
-  {
-    if( stats[0][Q_SAT_PERC_INDEX] >= q_comp_thresh )
-      return true;
-    else
-      return false;
-  }
-
   // now need to check the performance to determine if it is scalable or not
   double query_sat_perc = 0;
   for( uint16_t i = 0; i < stats.size()-1; i++ )
@@ -624,6 +658,13 @@ bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQuer
     if( satAllQueries && stats[i][Q_SAT_PERC_INDEX] < q_comp_thresh )
       return false;
   }
+  if( oneFlow )
+  {
+    if( query_sat_perc >= q_comp_thresh )
+      return true;
+    else
+      return false;
+  }
   if( stats.size() == 0 )
   {
     std::cout<<"ERROR:  Did not read any stats in topk-query-line-net.cc";
@@ -633,6 +674,7 @@ bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQuer
     query_sat_perc = query_sat_perc/(stats.size()-1);
 //    std::cout<<"Query sat perc = " << query_sat_perc << " stats.size-1 = " << stats.size()-1 << "\n";
   }
+
   if( query_sat_perc >= q_comp_thresh )
   {
     return true;
@@ -665,10 +707,10 @@ int FindNumImages( std::string SumSimFilename, double sum_similarity )
       sumsim_fd.getline( buf, 32, '\n' );  
       num_images = (int)strtod(buf,&pEnd);
    
-      if( TOPK_QUERY_CLIENT_DEBUG )
-      {
-        std::cout<<"From file: sum_sim = " << sum_sim << ", num_images = " << num_images <<" (input sum similarity = " << sum_similarity << ")\n";
-      }
+      //if( TOPK_QUERY_CLIENT_DEBUG )
+      //{
+       // std::cout<<"From file: sum_sim = " << sum_sim << ", num_images = " << num_images <<" (input sum similarity = " << sum_similarity << ")\n";
+      //}
 
       if( sum_sim >= sum_similarity )
       {
@@ -678,6 +720,54 @@ int FindNumImages( std::string SumSimFilename, double sum_similarity )
     if( !found_requ )
     {
       std::cout << "Error: didn't find valid requirement in file...returning -1\n";
+    }
+  }
+
+  return -1;
+
+}
+
+int FindInitialGuess( std::string InitialGuessFilename, double sum_similarity, double timeliness )
+{
+  char buf[100];
+
+  std::ifstream init_guess_fd;
+  sprintf(buf, "%s.csv", InitialGuessFilename.c_str());
+  init_guess_fd.open( buf, std::ifstream::in );
+  if( !init_guess_fd.is_open() )
+  {
+    std::cout << "Error opening sum similarity requirements file: " << buf << "...returning -1\n";
+    return -1;
+  }
+  else
+  {
+    bool found_requ = false;
+    double sum_sim;
+    double tness;
+    int num_nodes;
+    while( init_guess_fd.good() )
+    {
+      char *pEnd;
+      init_guess_fd.getline( buf, 32, ',' );  
+      sum_sim = strtod(buf,&pEnd);
+      init_guess_fd.getline( buf, 32, ',' );  
+      tness = strtod(buf,&pEnd);
+      init_guess_fd.getline( buf, 32, '\n' );  
+      num_nodes = (int)strtod(buf,&pEnd);
+   
+      //if( TOPK_QUERY_CLIENT_DEBUG )
+      //{
+        //std::cout<<"From file: sum_sim = " << sum_sim << ", tness = " << tness << ", num_nodes = " << num_nodes <<" (input sum similarity = " << sum_similarity << ")\n";
+      //}
+
+      if( sum_sim == sum_similarity && tness == timeliness )
+      {
+        return num_nodes;
+      }
+    }
+    if( !found_requ )
+    {
+      std::cout << "Error: didn't find valid initial guess in file...returning -1\n";
     }
   }
 

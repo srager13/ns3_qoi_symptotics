@@ -545,11 +545,6 @@ int FindNumImages( std::string SumSimFilename, double sum_similarity )
       sumsim_fd.getline( buf, 32, '\n' );  
       num_images = (int)strtod(buf,&pEnd);
    
-      if( TOPK_QUERY_CLIENT_DEBUG )
-      {
-        std::cout<<"From file: sum_sim = " << sum_sim << ", num_images = " << num_images <<" (input sum similarity = " << sum_similarity << ")\n";
-      }
-
       if( sum_sim >= sum_similarity )
       {
         return num_images;

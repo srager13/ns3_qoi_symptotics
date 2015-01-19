@@ -124,6 +124,10 @@ TopkQueryClient::GetTypeId (void)
                    BooleanValue(false),
                    MakeBooleanAccessor(&TopkQueryClient::one_flow),
                    MakeBooleanChecker ())
+    .AddAttribute ("ClientDebug", "",
+                   BooleanValue(false),
+                   MakeBooleanAccessor(&TopkQueryClient::TOPK_QUERY_CLIENT_DEBUG),
+                   MakeBooleanChecker ())
   ;
   return tid;
 }
@@ -353,7 +357,8 @@ TopkQueryClient::HandleRead (Ptr<Socket> socket)
           if( active_queries[i].server_node == tag.sending_node && active_queries[i].id == tag.query_id )
           {
             found_query = true;
-            active_queries[i].num_packets_rcvd++;
+            if( Simulator::Now() <= active_queries[i].deadline )
+              active_queries[i].num_packets_rcvd++;
            
             // check to see if past deadline or done with query.  If so, go to check query to deal with it and start new one. 
             if( Simulator::Now() >= active_queries[i].deadline || active_queries[i].num_packets_rcvd == active_queries[i].num_packets_rqstd )
@@ -418,7 +423,8 @@ TopkQueryClient::CheckQuery( uint16_t id, uint16_t server )
       }
       double perc_rcvd = (double)active_queries[i].num_packets_rcvd/(double)active_queries[i].num_packets_rqstd;
       //if( active_queries[i].num_packets_rcvd >= active_queries[i].num_packets_rqstd )
-      if( perc_rcvd >= 0.98 ) // consider satisfied if we get 98% of the requested number of packets
+      //if( perc_rcvd >= 0.99 ) // consider satisfied if we get 98% of the requested number of packets
+      if( perc_rcvd == 1.0 ) // consider satisfied if we get 98% of the requested number of packets
       {
         num_queries_satisfied++;
         sum_extra_time += active_queries[i].deadline - Simulator::Now();
@@ -513,8 +519,15 @@ TopkQueryClient::PrintStats()
     avg_extra_time = sum_extra_time.GetSeconds()/(double)num_queries_satisfied;
     avg_query_time = sum_query_time.GetSeconds()/(double)num_queries_satisfied;
   }
-                   // 1   2   3   4   5   6  6b   7      8     9   10  11  12  13  14    15   16     17  18   19    20   21
-  fprintf(stats_fd, "%i, %i, %i, %i, %i, %i, %i, %.1f, %.2f, %.1f, %i, %i, %i, %i, %i, %.3f, %.3f, %.2f, %i, %.2f, %.2f, %i\n",
+  double perc_queries_satisfied = 0;
+  if( num_queries_issued > 0 )
+    perc_queries_satisfied = (double)num_queries_satisfied/(double)num_queries_issued; 
+
+  int one_flow_run = 0;
+  if( one_flow )
+    one_flow_run = 1;
+                   // 1   2   3   4   5   6  6b   7      8     9   10  11  12  13  14    15   16     17  18   19    20   21  22
+  fprintf(stats_fd, "%i, %i, %i, %i, %i, %i, %i, %.1f, %.2f, %.1f, %i, %i, %i, %i, %i, %.3f, %.3f, %.2f, %i, %.2f, %.2f, %i, %i\n",
     GetNode()->GetId(), // 1 i 
     num_nodes, // 2 i
     num_queries_satisfied, // 3 i
@@ -532,11 +545,12 @@ TopkQueryClient::PrintStats()
     avg_num_packets_rqrd, // 14 i
     avg_query_time, // 15 f
     avg_extra_time, // 16 f
-    (double)num_queries_satisfied/(double)num_queries_issued, // 17 f
+    perc_queries_satisfied, // 17 f
     num_packets_dropped, // 18 i
     avg_queue_size, // 19 .2f
     sum_number_flows/num_times_counted_flows, // 20 .2f  - avg num flows
-    max_q_size
+    max_q_size,
+    one_flow_run
   );
 
   fclose(stats_fd);

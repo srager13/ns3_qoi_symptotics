@@ -33,7 +33,6 @@
 #include <vector>
 
 //#define SMALL_QUEUES 0
-#define TOPK_QUERY_CLIENT_DEBUG 0
 #define ALL_DEST 0
 
 namespace ns3 {
@@ -337,6 +336,7 @@ private:
   double channel_rate;
 
   bool one_flow;
+  bool TOPK_QUERY_CLIENT_DEBUG;
 
   //Ptr<NormalRandomVariable> rand_interval;
   Ptr<ExponentialRandomVariable> rand_interval;

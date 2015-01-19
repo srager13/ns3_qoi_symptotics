@@ -92,6 +92,18 @@ TopkQueryServer::GetTypeId (void)
                     BooleanValue(false),
                     MakeBooleanAccessor(&TopkQueryServer::one_flow),
                     MakeBooleanChecker())
+    .AddAttribute ("ServerDebug", "",
+                    BooleanValue(false),
+                    MakeBooleanAccessor(&TopkQueryServer::TOPK_QUERY_SERVER_DEBUG),
+                    MakeBooleanChecker())
+    .AddAttribute ("SourceNode", "Source of flow in one flow mode.",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&TopkQueryServer::source_node),
+                   MakeUintegerChecker<uint16_t> ())
+    .AddAttribute ("DestNode", "Destination of flow in one flow mode.",
+                   UintegerValue (3),
+                   MakeUintegerAccessor (&TopkQueryServer::dest_node),
+                   MakeUintegerChecker<uint16_t> ())
     .AddAttribute("SumSimFilename",
                    "File to look up sum sim vs. number of packets needed (in $NS3_DIR).",
                    StringValue("SumSimRequirements.csv"),
@@ -149,7 +161,7 @@ TopkQueryServer::Init()
       sumsim_fd.getline( buf, 32, '\n' );  
       num_packets = num_packets_per_image*(int)strtod(buf,&pEnd);
    
-      if( TOPK_QUERY_CLIENT_DEBUG )
+      if( TOPK_QUERY_SERVER_DEBUG )
       {
         std::cout<<"From file: sum_sim = " << sum_sim << ", num_packets = " << num_packets <<" (input sum similarity = " << sum_similarity << ")\n";
       }
@@ -157,7 +169,7 @@ TopkQueryServer::Init()
       if( sum_sim >= sum_similarity )
       {
         avg_num_packets_rqrd = num_packets;
-        if( TOPK_QUERY_CLIENT_DEBUG )
+        if( TOPK_QUERY_SERVER_DEBUG )
         {
           std::cout<<"Found requirement. Setting avg_num_packets_rqrd to " << avg_num_packets_rqrd << "\n";
         }
@@ -248,7 +260,7 @@ TopkQueryServer::StopApplication ()
 void
 TopkQueryServer::StartNewSession()
 {
-  if( one_flow && GetNode()->GetId() != 0 )
+  if( one_flow && GetNode()->GetId() != source_node )
   {
     return;
   } 
@@ -262,8 +274,10 @@ TopkQueryServer::StartNewSession()
 
   if( one_flow )
   {
-    dest = num_nodes-1;
+    //std::cout<< "One flow\n";
+    dest = dest_node;
   }
+  //std::cout<<"source node = " << GetNode()->GetId() << ", dest node = " << dest << "\n";
   
   // num packets set from sum similarity requirement input.  
   // Here we vary slightly around that number just to provide a little bit of randomness
@@ -273,7 +287,7 @@ TopkQueryServer::StartNewSession()
   //int rand_change =  (int)rand_ss_dist->GetValue();
   int rand_change = 0;
   num_packets_needed += rand_change;
-  if( TOPK_QUERY_CLIENT_DEBUG )
+  if( TOPK_QUERY_SERVER_DEBUG )
   {
     std::cout<<"rand_change = " << rand_change << ", resulting required packet num = " << num_packets_needed << "\n";
   }
@@ -341,7 +355,8 @@ TopkQueryServer::ScheduleTrx ( uint16_t from, int num_packets_rqstd, int query_i
   }
   
   double bit_rate = channel_rate*1000000.0;
-  double num_bits = (packet_size_bytes+28)*8.0; // adding 28 for packet headers
+  double num_bits = (packet_size_bytes)*8.0; // adding 28 for packet headers
+  //double num_bits = (packet_size_bytes+28)*8.0; // adding 28 for packet headers
 
   // checking to make sure it's not more than even the first hop can handle
   if( 3 * num_packets_rqstd * (num_bits/bit_rate) > timeliness )
@@ -352,7 +367,8 @@ TopkQueryServer::ScheduleTrx ( uint16_t from, int num_packets_rqstd, int query_i
   
   for( int i = 0; i < num_packets_rqstd; i++ )
   {
-    Time delay = Seconds( 3 * i * ( (num_bits/bit_rate) + 0.00) );
+    Time delay = Seconds( i * ( (num_bits/bit_rate) + 0.00) );
+    //Time delay = Seconds( 3 * i * ( (num_bits/bit_rate) + 0.00) );
     Simulator::Schedule( delay, &TopkQueryServer::SendPacket, this, from, i+1, num_packets_rqstd, query_id ); 
   }
 
