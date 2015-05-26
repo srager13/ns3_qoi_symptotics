@@ -1,0 +1,4 @@
+./run_mds_circle_net_vary_dup_packet_rate_one_shot.sh
+
+./run_mds_circle_net_vary_dup_packet_rate_long_term.sh
+

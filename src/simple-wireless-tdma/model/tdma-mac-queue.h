@@ -157,6 +157,7 @@ private:
   double sum_number_flows;
   double avg_number_flows;
   double number_times_counted_flows;
+  int current_num_flows;
   double max_num_current_flows;
 
   double avg_queue_size;

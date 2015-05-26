@@ -99,6 +99,7 @@ TdmaMacQueue::TdmaMacQueue ()
   sum_number_flows = 0;
   avg_number_flows = 0;
   number_times_counted_flows = 0;
+  current_num_flows = 0;
   max_num_current_flows = 0;
   avg_queue_size = 0;
   num_dropped_packets = 0;
@@ -169,8 +170,29 @@ TdmaMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 {
   TopkQueryTag tag(-1, -1, 0, -1);
   packet->PeekPacketTag(tag);
+
   QueryDeadlineTag dl_tag(0.0);
   packet->PeekPacketTag(dl_tag);
+
+  Ptr<Packet> pkt = packet->Copy();
+  MaxTFTag tf_tag(0, 0);
+  if( pkt->RemovePacketTag(tf_tag) )
+  { 
+    //std::cout<<"Query Deadline Tag: deadline = " << dl_tag.deadline << ", max_TF = " << dl_tag.max_TF << "\n";
+    //std::cout<<"Found TF tag: max_TF = " << tf_tag.max_TF <<", node = " << tf_tag.max_TF_node << "\n";
+    if( current_num_flows > tf_tag.max_TF )
+    {
+      //std::cout<<"Replacing TF tag: max_TF = " << current_num_flows <<", node = " << node_id << "\n";
+      tf_tag.max_TF = current_num_flows;
+      tf_tag.max_TF_node = node_id;
+    }
+    pkt->AddPacketTag(tf_tag);
+  }
+  else
+  {
+    std::cout<<"Unable to find TF Tag\n";
+  }
+    
 //  std::cout<<"Time: " << Simulator::Now().GetSeconds() << " Queue Size: " << m_size << " Max Size: " << m_maxSize << "\n";
   if( TDMA_MAC_QUEUE_DEBUG )
   {
@@ -205,9 +227,10 @@ TdmaMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
   }
   
   Time now = Simulator::Now ();
-  m_queue.push_back (Item (packet, hdr, now));
+  //m_queue.push_back (Item (packet, hdr, now));
+  m_queue.push_back (Item (pkt, hdr, now));
   m_size++;
-  NS_LOG_DEBUG ("Inserted packet of size: " << packet->GetSize () );
+  NS_LOG_DEBUG ("Inserted packet of size: " << pkt->GetSize () );
     
   bool found_query = false;
   if( tag.sending_node == node_id || tag.sending_node == -1 || tag.query_id == -1 )
@@ -390,11 +413,11 @@ TdmaMacQueue::CheckForTimedOutQueries()
 void
 TdmaMacQueue::UpdateNumberActiveFlows()
 {
-  int current_num_flows = 0;
+  current_num_flows = 0;
   if( Simulator::Now() < Seconds(FLOW_COUNT_STOP_TIME) )
 	{
     sum_number_flows += flows.size();
-    current_num_flows += flows.size();
+    current_num_flows = flows.size();
 
     if( current_num_flows > max_num_current_flows )
       max_num_current_flows = current_num_flows;
@@ -416,10 +439,10 @@ TdmaMacQueue::UpdateNumberActiveFlows()
     }
  
 		avg_number_flows = sum_number_flows/number_times_counted_flows;
-    Simulator::Schedule( Seconds(1), &TdmaMacQueue::UpdateNumberActiveFlows, this );
+    Simulator::Schedule( Seconds(0.5), &TdmaMacQueue::UpdateNumberActiveFlows, this );
     
     Ptr<TopkQueryClient> clientPtr = m_netDevicePtr->GetNode()->GetApplication(1)->GetObject<TopkQueryClient>();
-    clientPtr->UpdateQueueStats( avg_queue_size, m_size, sum_number_flows, number_times_counted_flows );
+    clientPtr->UpdateQueueStats( current_num_flows, avg_queue_size, m_size, sum_number_flows, number_times_counted_flows, max_num_current_flows );
 	}
   return;
 }

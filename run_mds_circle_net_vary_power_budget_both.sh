@@ -1,0 +1,4 @@
+./run_mds_circle_net_vary_power_budget_one_shot.sh
+
+./run_mds_circle_net_vary_power_budget_long_term.sh
+

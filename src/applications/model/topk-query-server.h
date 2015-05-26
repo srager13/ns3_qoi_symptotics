@@ -94,6 +94,7 @@ private:
   uint16_t image_size_kbytes; // size in bytes of each image
   uint16_t packet_size_bytes; // size in bytes of each packet
   uint16_t num_nodes;
+  uint8_t contention_factor;
   int avg_num_packets_rqrd;
   double delay_padding; // delay time (in seconds) that server waits after sending each image to ensure no loss 
   double channel_rate; // in Mbps
@@ -112,6 +113,7 @@ private:
   double sum_similarity;
 
   Ptr<UniformRandomVariable> rand_dest;
+  Ptr<NormalRandomVariable> time_jitter;
 };
 
 } // namespace ns3

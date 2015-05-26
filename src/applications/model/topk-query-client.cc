@@ -147,6 +147,7 @@ TopkQueryClient::TopkQueryClient () :
   num_packets_rcvd = 0;
   num_packets_dropped = 0;
   sum_number_flows = 0.0;
+  max_number_flows = 0.0;
   num_times_counted_flows = 0.0;
   avg_queue_size = 0.0;
   max_q_size = 0;
@@ -172,6 +173,7 @@ TopkQueryClient::Init()
 
   sum_extra_time = Seconds(0);
   sum_query_time = Seconds(0);
+  max_query_time = Seconds(0);
   
   char buf[100];
 
@@ -317,6 +319,8 @@ TopkQueryClient::CreateNewActiveQuery ( uint16_t server_node, uint16_t query_id,
   new_query.num_packets_rcvd = 0;
   new_query.start_time = Simulator::Now();
   new_query.deadline = Simulator::Now() + timeliness;
+  new_query.max_TF = 0;
+  new_query.max_TF_node = 0;
  
   num_queries_issued++;
 
@@ -372,6 +376,17 @@ TopkQueryClient::HandleRead (Ptr<Socket> socket)
                          active_queries[i].num_packets_rqstd << " of query " << active_queries[i].id << "\n";
             }
 
+            MaxTFTag tf_tag(0, 0);
+            if( packet->RemovePacketTag(tf_tag) )
+            {
+		  	      //std::cout<<"Node " << GetNode()->GetId() << " found TF tag at dest: max_TF = " << tf_tag.max_TF << 
+                          //", node = " << tf_tag.max_TF_node << "\n";
+              if( tf_tag.max_TF > active_queries[i].max_TF )
+              {
+                active_queries[i].max_TF = tf_tag.max_TF;
+                active_queries[i].max_TF_node = tf_tag.max_TF_node;
+              }
+            }
           }
         } 
         if( !found_query )
@@ -429,7 +444,43 @@ TopkQueryClient::CheckQuery( uint16_t id, uint16_t server )
         num_queries_satisfied++;
         sum_extra_time += active_queries[i].deadline - Simulator::Now();
         sum_query_time += Simulator::Now() - active_queries[i].start_time;
+        if( Simulator::Now() - active_queries[i].start_time > max_query_time )
+        {
+            max_query_time = Simulator::Now() - active_queries[i].start_time;
+
+            if( TOPK_QUERY_CLIENT_DEBUG )
+            {
+              std::cout<<"Max query time: " << max_query_time.GetSeconds() << "...source = " << active_queries[i].server_node << ", dest = " << GetNode()->GetId() << ", max TF = " << active_queries[i].max_TF << ", max TF node = " << active_queries[i].max_TF_node << "\n";
+            }
+        }
+
+        if( Simulator::Now() < run_time - timeliness-Seconds(110) )
+        {
+          delays.push_back( (Simulator::Now() - active_queries[i].start_time).GetSeconds() );
+          src_nodes.push_back( active_queries[i].server_node );
+        }
+        
       }
+      else
+      {
+        if( TOPK_QUERY_CLIENT_DEBUG )
+        {
+          std::cout<<"Unsatisfied Query: Time = " << (Simulator::Now()-active_queries[i].start_time).GetSeconds() << ", source = " << active_queries[i].server_node << ", dest = " << GetNode()->GetId() << ", max TF = " << active_queries[i].max_TF << ", max TF node = " << active_queries[i].max_TF_node << "\n";
+        }
+      }
+
+      if( Simulator::Now() > Seconds(50) )
+      {  
+        FlowMaxTF fmtf;
+        fmtf.orig_node = active_queries[i].server_node;
+        fmtf.max_TF = active_queries[i].max_TF;
+        fmtf.timestamp = Simulator::Now();
+        flow_max_TFs.push_back(fmtf);
+      }
+      //if( active_queries[i].max_TF == 0 )
+      //{
+        //std::cout<<"Time " << Simulator::Now().GetSeconds() << ": Flow TF = 0; Source = " << active_queries[i].server_node << "; Dest = " << GetNode()->GetId() << "\n";
+      //}
 
       if( active_queries[i].num_packets_rcvd == 0 )
       {
@@ -479,14 +530,25 @@ TopkQueryClient::IncrementNumPacketsDropped()
   num_packets_dropped++;
 }
 
+// called from within TDMA mac queue
 void 
-TopkQueryClient::UpdateQueueStats( double avg_q_size, uint32_t current_q_size, double sum_num_flows, double num_times_counted )
+TopkQueryClient::UpdateQueueStats( int current_num_flows, double avg_q_size, uint32_t current_q_size, double sum_num_flows, double num_times_counted, double max_num_flows )
 {
-  if( current_q_size > max_q_size )
-    max_q_size = current_q_size;
-  avg_queue_size = avg_q_size;
-  sum_number_flows = sum_num_flows;
-  num_times_counted_flows = num_times_counted;
+  // only keep track of stats while simulation is in an equlibrium.
+  //  Topk server stops creating new queries with 110 seconds left, so we stop at that point.
+  //  otherwise, we would end up with a number of 0 TF values
+  if( Simulator::Now() < run_time - timeliness - Seconds(110) )
+  {
+    TFs.push_back(current_num_flows);
+
+    if( current_q_size > max_q_size )
+      max_q_size = current_q_size;
+    avg_queue_size = avg_q_size;
+    sum_number_flows = sum_num_flows;
+    if( max_num_flows > max_number_flows )
+      max_number_flows = max_num_flows;
+    num_times_counted_flows = num_times_counted;
+  }
 } 
 
 void 
@@ -526,8 +588,8 @@ TopkQueryClient::PrintStats()
   int one_flow_run = 0;
   if( one_flow )
     one_flow_run = 1;
-                   // 1   2   3   4   5   6  6b   7      8     9   10  11  12  13  14    15   16     17  18   19    20   21  22
-  fprintf(stats_fd, "%i, %i, %i, %i, %i, %i, %i, %.1f, %.2f, %.1f, %i, %i, %i, %i, %i, %.3f, %.3f, %.2f, %i, %.2f, %.2f, %i, %i\n",
+                   // 1   2   3   4   5   6  6b   7      8     9   10  11  12  13  14    15   16     17  18   19    20   21  22   23  24
+  fprintf(stats_fd, "%i, %i, %i, %i, %i, %i, %i, %.1f, %.2f, %.1f, %i, %i, %i, %i, %i, %.3f, %.3f, %.2f, %i, %.2f, %.2f, %i, %i, %.3f, %.1f\n",
     GetNode()->GetId(), // 1 i 
     num_nodes, // 2 i
     num_queries_satisfied, // 3 i
@@ -549,11 +611,58 @@ TopkQueryClient::PrintStats()
     num_packets_dropped, // 18 i
     avg_queue_size, // 19 .2f
     sum_number_flows/num_times_counted_flows, // 20 .2f  - avg num flows
-    max_q_size,
-    one_flow_run
+    max_q_size,  // 21
+    one_flow_run, // 22 
+    max_query_time.GetSeconds(), // 23
+    max_number_flows // 24
   );
 
   fclose(stats_fd);
+        
+  FILE *delay_fd;
+
+  sprintf(buf, "%s/Node_delays.csv", DataFilePath.c_str() );
+  delay_fd = fopen(buf, "a");
+  if( delay_fd == NULL )
+  {
+    std::cout << "Error opening delay output file: " << buf << "\n";
+    return;
+  }
+  for( uint16_t i = 0; i < delays.size(); i++ )
+  {
+    fprintf( delay_fd, "%i, %0.3f\n", src_nodes[i], delays[i] );
+  }
+  fclose(delay_fd);
+  
+  FILE *TF_fd;
+
+  sprintf(buf, "%s/Node_TFs.csv", DataFilePath.c_str() );
+  TF_fd = fopen(buf, "a");
+  if( TF_fd == NULL )
+  {
+    std::cout << "Error opening TF output file: " << buf << "\n";
+    return;
+  }
+  for( uint16_t i = 0; i < TFs.size(); i++ )
+  {
+    fprintf( TF_fd, "%i, %i\n", GetNode()->GetId(), TFs[i] );
+  }
+  fclose(TF_fd);
+  
+  FILE *FlowTF_fd;
+
+  sprintf(buf, "%s/Flow_TFs.csv", DataFilePath.c_str() );
+  FlowTF_fd = fopen(buf, "a");
+  if( FlowTF_fd == NULL )
+  {
+    std::cout << "Error opening Flow_TF output file: " << buf << "\n";
+    return;
+  }
+  for( uint16_t i = 0; i < flow_max_TFs.size(); i++ )
+  {
+    fprintf( FlowTF_fd, "%i, %i, %i, %.2f\n", flow_max_TFs[i].orig_node, flow_max_TFs[i].max_TF, GetNode()->GetId(), flow_max_TFs[i].timestamp.GetSeconds() );
+  }
+  fclose(FlowTF_fd);
 }
 
 

@@ -1,0 +1,15 @@
+
+Notes on the Maximum Diversity Scheduling Protocol in ns-3:
+
+1)  Overview:
+  The MaxDivSched protocol inherits from the DistUnivSched Class, which in turn inherits from Ipv4RoutingProtocol.  Therefore, it sits basically at the Network layer of the protocol stack.  It overwrites the virtual functions from Ipv4RoutingProtocol of RouteOutput and RouteInput to accept packets from an application running above it and send packets between nodes using the layers below it.  In between these steps, it does its own queueing and decision-making about which packets should be sent and to which nodes.
+
+2) Running simulations:
+  All simulation scripts are in the scratch directory.  Each run of the simulation script is run from the home directory (path_to_ns_dir/ns-allinone-3.13/ns-3.13) with waf in a command like this:
+    ./waf --run "scratch/simulation-script --inputParameter1=value1 --inputParameter2=value2" 
+  where the inputParameters are optional values that can be passed in to be used in the simualation instead of the default values.  Most are passed in to the simulation script, which sets them using the maxDivSchedHelper.  They can also usually be set directly from the command line using the full namespace path, e.g. --ns3::dus::RoutingProtocol::dataFilePath='./example_path/'.
+  Bash scripts can be used to run consecutive simulations with varying paramaters.  These scripts are all located in the home directory.
+
+3) Output:
+  The protocol keeps track of its own statistics and outputs them to a file with comma separated values just before exiting.  The file it outputs these stats to is called "maxDivSchedStats.csv".  If it does not exist, it will create the file.  If it does already exist, it will open the file and append its stats to the end.  The parameter --ns3::dus::RoutingProtocol::dataFilePath sets the directory in which the protocol will look for this file.  This parameter is used to let multiple simulations be run simultaneously with the outputs being separate.  The format of what stats are collected and output and in what order is kept in a powerpoint slide labeled mds_ns3_stat_file_format.pptx, which I've included in the home directory for reference.  All debugging information is printed to stdout and is controlled by setting defines at the top of maxDivSched.h dus-routing-protocol.h headers.
+

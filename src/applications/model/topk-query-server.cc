@@ -72,6 +72,10 @@ TopkQueryServer::GetTypeId (void)
                    UintegerValue (9),
                    MakeUintegerAccessor (&TopkQueryServer::num_nodes),
                    MakeUintegerChecker<uint16_t> ())
+    .AddAttribute ("ContentionFactor", ".",
+                   UintegerValue (1),
+                   MakeUintegerAccessor (&TopkQueryServer::contention_factor),
+                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("DelayPadding", "Delay time in seconds that server waits after sending each image to prevent overloading socket.",
                    DoubleValue(0.1),
                    MakeDoubleAccessor(&TopkQueryServer::delay_padding),
@@ -132,6 +136,10 @@ TopkQueryServer::TopkQueryServer ():
   query_ids = 1;
   
   rand_dest = CreateObject<UniformRandomVariable>();
+  
+  time_jitter = CreateObject<NormalRandomVariable>();
+  time_jitter->SetAttribute( "Mean", DoubleValue(0.0) );
+  time_jitter->SetAttribute( "Variance", DoubleValue(0.0) );
  
   Simulator::Schedule( NanoSeconds(2), &TopkQueryServer::Init, this );
 }
@@ -231,9 +239,8 @@ TopkQueryServer::StartApplication (void)
 
   PopulateArpCache();
 
-  //Time next = timeliness + Seconds(rand_interval->GetValue());
   //Time next = timeliness;
-  Time next = Seconds(5);
+  Time next = Seconds(5) + Seconds(time_jitter->GetValue());
   if( next.GetSeconds() < 0.0 )
   {
     next = timeliness;
@@ -320,8 +327,10 @@ TopkQueryServer::StartNewSession()
 
   if( Simulator::Now() + timeliness < run_time - Seconds(110) ) // adding 10 seconds for buffer
   {
-    // TODO::Add random?
-    Time dt = timeliness;
+    // Added randomness to try to get more uniformity between flows
+    Time dt = timeliness + Seconds(time_jitter->GetValue());
+    dt = timeliness;
+  
     //std::cout<<"Scheduling StartNewSession with delay = " << dt.GetSeconds() << "\n";
     Simulator::Schedule (dt, &TopkQueryServer::StartNewSession, this);
   }
@@ -367,8 +376,9 @@ TopkQueryServer::ScheduleTrx ( uint16_t from, int num_packets_rqstd, int query_i
   
   for( int i = 0; i < num_packets_rqstd; i++ )
   {
-    Time delay = Seconds( i * ( (num_bits/bit_rate) + 0.00) );
+    Time delay = Seconds( contention_factor * i * (num_bits/bit_rate) );
     //Time delay = Seconds( 3 * i * ( (num_bits/bit_rate) + 0.00) );
+    //Time delay = Seconds( 5 * i * ( (num_bits/bit_rate) + 0.00) );
     Simulator::Schedule( delay, &TopkQueryServer::SendPacket, this, from, i+1, num_packets_rqstd, query_id ); 
   }
 
@@ -387,8 +397,13 @@ TopkQueryServer::SendPacket ( uint16_t from, int packetNum, int num_packets_rqst
 
   TopkQueryTag tag( query_id, num_packets_rqstd, packetNum, GetNode()->GetId() ); 
   p->AddPacketTag(tag);
+
   QueryDeadlineTag dl_tag( Simulator::Now().GetSeconds()+timeliness.GetSeconds() );
   p->AddPacketTag(dl_tag);
+
+  MaxTFTag tf_tag( 0, 0 );
+  p->AddPacketTag(tf_tag);
+
   int bytes_sent = m_socket[from]->Send (p);
   if( bytes_sent < 0 )
   {

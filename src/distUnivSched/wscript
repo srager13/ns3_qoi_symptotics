@@ -1,0 +1,40 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+# def options(opt):
+#     pass
+
+# def configure(conf):
+#     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
+
+def build(bld):
+    module = bld.create_ns3_module('distUnivSched', ['core', 'internet', 'applications', 'wifi', 'point-to-point', 'virtual-net-device']) 
+    module.source = [
+        'model/dus-routing-protocol.cc',
+        'model/distUnivSchedQueue.cc',
+        'model/distUnivSchedStats.cc',
+        'model/maxDivSched.cc',
+        'helper/distUnivSched-helper.cc',
+        'helper/maxDivSchedHelper.cc',
+        ]
+
+    module_test = bld.create_ns3_module_test_library('distUnivSched')
+    module_test.source = [
+        'test/distUnivSched-test-suite.cc',
+        ]
+
+    headers = bld(features=['ns3header'])
+    headers.module = 'distUnivSched'
+    headers.source = [
+        'model/dus-routing-protocol.h',
+        'model/distUnivSchedQueue.h',
+        'model/distUnivSchedStats.h',
+        'model/maxDivSched.h',
+        'helper/distUnivSched-helper.h',
+        'helper/maxDivSchedHelper.h',
+        ]
+
+    if bld.env.ENABLE_EXAMPLES:
+        bld.recurse('examples')
+
+    bld.ns3_python_bindings()
+

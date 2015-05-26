@@ -1,0 +1,57 @@
+#   Request 1 processors on 1 node
+#
+#PBS -l nodes=1:ppn=1
+#
+#   Request # hours of walltime
+#
+#PBS -l walltime=96:00:00
+#
+#   Request that regular output and terminal output go to the same file
+#
+#PBS -j oe
+#
+#PBS -M rager@psu.edu
+#
+#   The following is the body of the script. By default,
+#   PBS scripts execute in your home directory, not the
+#   directory from which they were submitted. The following
+#   line places you in the directory from which the job
+#   was submitted.
+#
+cd $NS3_DIR
+
+echo "Starting cache_run_script/vary_V/run_mds_cache.pbs: "
+echo "Num nodes = $numNodes"
+echo "Input Rate = $inputRate"
+echo "Run Seed = $runSeed"
+echo "Run time = $runTime"
+echo "Power Budget = $powerBudget"
+echo "Time Slot Duration = $timeSlotDuration"
+echo "Time Budget = $timeBudget"
+echo "Initial Battery Power = $initBatteryPower"
+echo "Node Speed = $nodeSpeed"
+echo "Max Pause = $maxPause"
+echo "Min item cov dist = $minItemCovDist"
+echo "Max item cov dist = $maxItemCovDist"
+echo "Fixed packet send size = $fixedPacketSendSize"
+echo "Area Width = $areaWidth"
+echo "Area Length = $areaLength"
+echo "Long Term Avg = $longTermAvg"
+echo "One Shot = $oneShot"
+echo "Rand Choice = $randChoice"
+echo "Approx One Shot = $approxOneShot"
+echo "Approx Greedy VQ = $approxGreedyVQ"
+echo "V = $V"
+echo "cacheProblem = $cacheProblem"
+echo "numSlotsPerFrame = $numSlotsPerFrame"
+echo "singleHop = $singleHop"
+
+if [ ! -d ./data_files/mds_cache/vary_V/initBattery_$((initBatteryPower))/IR_$((inputRate))_nodes_$((numNodes))/V_`echo "$V" | bc`/run_seed_$(($runSeed))/ ]; then
+  mkdir -p ./data_files/mds_cache/vary_V/initBattery_$((initBatteryPower))/IR_$((inputRate))_nodes_$((numNodes))/V_`echo "$V" | bc`/run_seed_$(($runSeed))/
+fi
+
+if [ -e ./data_files/mds_cache/vary_V/initBattery_$((initBatteryPower))/IR_$((inputRate))_nodes_$((numNodes))/V_`echo "$V" | bc`/run_seed_$(($runSeed))/maxDiv* ]; then
+  rm ./data_files/mds_cache/vary_V/initBattery_$((initBatteryPower))/IR_$((inputRate))_nodes_$((numNodes))/V_`echo "$V" | bc`/run_seed_$(($runSeed))/maxDiv*
+fi
+
+./waf --run "scratch/mds-cache-mobile --numNodes=$numNodes --runSeed=$runSeed --time=$runTime --timeSlotDuration=$timeSlotDuration --timeBudg=$timeBudget --powerBudg=$(echo "scale=3; "$powerBudget | bc -q) --areaWidth=$areaWidth --areaLength=$areaLength --longTermAvg=$longTermAvg --oneShot=$oneShot --randChoice=$randChoice --approxOneShot=$approxOneShot --approxGreedyVQ=$approxGreedyVQ --ns3::dus::RoutingProtocol::dataFilePath='./data_files/mds_cache/vary_V/initBattery_$((initBatteryPower))/IR_$((inputRate))_nodes_$((numNodes))/V_`echo "$V" | bc`/run_seed_$(($runSeed))/' --packetsPerSec=$((inputRate)).0 --initBatteryPower=$initBatteryPower --nodeSpeed=$nodeSpeed --maxPause=$maxPause --minItemCovDist=$minItemCovDist --maxItemCovDist=$maxItemCovDist --fixedPacketSendSize=$fixedPacketSendSize --V=$V --cacheProblem=$cacheProblem --numSlotsPerFrame=$numSlotsPerFrame --singleHop=$singleHop"

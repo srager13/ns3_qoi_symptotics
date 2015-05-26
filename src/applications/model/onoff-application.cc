@@ -267,14 +267,21 @@ void OnOffApplication::ScheduleStopEvent ()
 void OnOffApplication::SendPacket ()
 {
   NS_LOG_FUNCTION (this);
-
-  NS_ASSERT (m_sendEvent.IsExpired ());
+  
+	NS_ASSERT (m_sendEvent.IsExpired ());
   Ptr<Packet> packet = Create<Packet> (m_pktSize);
   m_txTrace (packet);
   m_socket->Send (packet);
   m_totBytes += m_pktSize;
   if (InetSocketAddress::IsMatchingType (m_peer))
     {
+			std::cout<<"At time " << Simulator::Now ().GetSeconds ()
+						 << "s on-off application sent "
+						 <<  packet->GetSize () << " bytes to "
+						 << InetSocketAddress::ConvertFrom(m_peer).GetIpv4 ()
+						 << " port " << InetSocketAddress::ConvertFrom (m_peer).GetPort ()
+						 << " total Tx " << m_totBytes << " bytes\n";
+
       NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
                    << "s on-off application sent "
                    <<  packet->GetSize () << " bytes to "

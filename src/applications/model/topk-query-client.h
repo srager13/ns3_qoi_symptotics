@@ -48,7 +48,58 @@ struct TopkQuery
   uint16_t num_packets_rcvd;
   Time start_time;
   Time deadline;
+  int max_TF;
+  int max_TF_node;
 };
+
+struct FlowMaxTF
+{
+  uint16_t orig_node;
+  uint16_t max_TF;
+  Time timestamp;
+};
+
+struct MaxTFTag : public Tag
+{
+  int max_TF;
+  int max_TF_node;
+
+  MaxTFTag( int mtf, int mtf_node ) : max_TF(mtf), max_TF_node(mtf_node) {}
+  
+  static TypeId GetTypeId()
+  {
+    static TypeId tid = TypeId("ns3::MaxTFTag").SetParent<Tag>();
+    return tid;
+  }
+
+  TypeId GetInstanceTypeId() const
+  {
+    return GetTypeId();
+  }
+  
+  uint32_t GetSerializedSize () const
+  {
+    return 2*sizeof(int);
+  }
+  void Serialize (TagBuffer i) const
+  {
+    i.WriteU32 (max_TF);
+    i.WriteU32 (max_TF_node);
+  }
+  
+  void Deserialize (TagBuffer i) 
+  {
+    max_TF = i.ReadU32();
+    max_TF_node = i.ReadU32();
+  }
+    
+  void Print (std::ostream &os) const
+  {
+   // os << "MaxTFTag: [max TF] = [" << max_TF << "], [max TF node] = [" << max_TF_node << "]\n";
+  }
+
+};
+
 struct QueryDeadlineTag : public Tag
 {
   double deadline;
@@ -68,7 +119,7 @@ struct QueryDeadlineTag : public Tag
   
   uint32_t GetSerializedSize () const
   {
-    return sizeof(double);
+    return 1*sizeof(double);
   }
   void Serialize (TagBuffer i) const
   {
@@ -262,7 +313,7 @@ public:
 
   void IncrementNumPacketsDropped();
 
-  void UpdateQueueStats( double avg_q_size, uint32_t current_q_size, double sum_num_flows, double num_times_counted );
+  void UpdateQueueStats( int current_num_flows, double avg_q_size, uint32_t current_q_size, double sum_num_flows, double num_times_counted, double max_num_flows );
 
   void CreateNewActiveQuery ( uint16_t dest, uint16_t query_id, uint16_t num_packets_rqstd );
 
@@ -319,6 +370,7 @@ private:
   Time run_time;
   Time sum_extra_time;
   Time sum_query_time;
+  Time max_query_time;
   uint16_t run_seed;
   uint16_t num_runs;
   std::string DataFilePath;
@@ -326,9 +378,14 @@ private:
   int num_packets_per_image;
 
   std::vector<TopkQuery> active_queries;
+  std::vector<double> delays;
+  std::vector<int> TFs;
+  std::vector<int> src_nodes;
+  std::vector<FlowMaxTF> flow_max_TFs;
   uint16_t num_packets_dropped;
   // Queue stats:
   double sum_number_flows;
+  double max_number_flows;
   double num_times_counted_flows;
   double avg_queue_size;
   uint32_t max_q_size;

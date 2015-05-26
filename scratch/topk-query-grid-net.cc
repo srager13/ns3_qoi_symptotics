@@ -98,11 +98,12 @@ using namespace ns3;
 
 bool UpdateNumNodes( bool last_trial_scalable, bool this_trial_scalable, uint32_t &lastNumNodes, uint32_t &numNodes, uint32_t nodeInc, uint32_t minNumNodes, bool first_run );
 
-bool UpdateSumSimilarity( bool last_trial_scalable, bool this_trial_scalable, double &lastSumSim, double &sumSimilarity, double sumSimInc, double minSumSim, bool first_run );
+bool UpdateSumSimilarity( bool last_trial_scalable, bool this_trial_scalable, int &lastNumImages, int &numImages, double &sumSimilarity, double minNumImages, bool first_run, std::string sumSimFilename );
 
 bool IsScalable( std::string dataFilePath, double q_comp_thresh, bool satAllQueries, bool oneFlow, int numNodes );
 
 int FindNumImages( std::string SumSimFilename, double sum_similarity );
+double FindSumSimilarity( std::string SumSimFilename, int numImages );
 
 int FindInitialGuess( std::string InitialGuessFilename, double sum_similarity, double timeliness );
 double FindInitialSumSimGuess( std::string InitialGuessFilename, uint32_t numNodes, double timeliness );
@@ -116,10 +117,11 @@ int main (int argc, char *argv[])
   uint32_t lastNumNodes = 0;
   uint32_t nodeInc = 1;
   uint32_t minNumNodes = 9;
+  uint8_t contentionFactor = 5;
   double sumSimilarity = 0.6;
-  double lastSumSim = 0.0;
-  double sumSimInc = 0.5;
-  double minSumSim = 0.5;
+  int numImages = 0;
+  int lastNumImages = 0.0;
+  int minNumImages = 1;
   double timeliness = 5.0;
   bool tracing = false;
 	uint64_t imageSizeKBytes = 2000;
@@ -186,10 +188,14 @@ int main (int argc, char *argv[])
   if( sumSimilarity == 0.0 )
   {
     sumSimilarity = FindInitialSumSimGuess( initGuessFilename, numNodes, timeliness);
+    // converting to smallest sum sim for same number of images
   }
+  numImages = FindNumImages( sumSimFilename, sumSimilarity );
+  std::cout<<"Initial num images = " << numImages << "\n";
+  sumSimilarity = FindSumSimilarity( sumSimFilename, numImages );
   std::cout<<"Initial guess = " << numNodes << ", sum similarity = " << sumSimilarity << "\n";
   lastNumNodes = numNodes;
-  lastSumSim = sumSimilarity;
+  lastNumImages = numImages;
 
   if( sourceNode == 0 && destNode == 0 )
   {
@@ -646,6 +652,7 @@ int main (int argc, char *argv[])
     server.SetAttribute("ImageSizeKBytes", UintegerValue(imageSizeKBytes));
     server.SetAttribute("PacketSizeBytes", UintegerValue(packetSizeBytes-40));
     server.SetAttribute("NumNodes", UintegerValue(numNodes));
+    server.SetAttribute("ContentionFactor", UintegerValue(contentionFactor));
     server.SetAttribute("DelayPadding", DoubleValue(delayPadding));
     server.SetAttribute("ChannelRate", DoubleValue(channelRate));
     server.SetAttribute ("Timeliness", TimeValue (Seconds(timeliness)));
@@ -712,7 +719,7 @@ int main (int argc, char *argv[])
      
     if( varyReqSumSim )
     {
-      found_limit = UpdateSumSimilarity( last_trial_scalable, this_trial_scalable, lastSumSim, sumSimilarity, sumSimInc, minSumSim, first_run );
+      found_limit = UpdateSumSimilarity( last_trial_scalable, this_trial_scalable, lastNumImages, numImages, sumSimilarity, minNumImages, first_run, sumSimFilename );
     }
     else
     {
@@ -751,7 +758,7 @@ int main (int argc, char *argv[])
     sprintf(buf, "%s/Scalability.csv", dataFilePath_2.c_str());
   std::ofstream scal_file;
   scal_file.open( buf, std::ofstream::app );
-  scal_file << lastSumSim << ", " << timeliness << ", " << lastNumNodes << "\n";
+  scal_file << FindSumSimilarity(sumSimFilename, lastNumImages) << ", " << timeliness << ", " << lastNumNodes << "\n";
   scal_file.close();
   return 0;
 }
@@ -810,7 +817,7 @@ bool UpdateNumNodes( bool last_trial_scalable, bool this_trial_scalable, uint32_
     return found_limit; 
 }
 
-bool UpdateSumSimilarity( bool last_trial_scalable, bool this_trial_scalable, double &lastSumSim, double &sumSimilarity, double sumSimInc, double minSumSim, bool first_run )
+bool UpdateSumSimilarity( bool last_trial_scalable, bool this_trial_scalable, int &lastNumImages, int &numImages, double &sumSimilarity, double minNumImages, bool first_run, std::string sumSimFilename )
 {
     bool found_limit = false;
     // Last = T && This = F
@@ -822,15 +829,17 @@ bool UpdateSumSimilarity( bool last_trial_scalable, bool this_trial_scalable, do
     if( !last_trial_scalable && !this_trial_scalable )
     {
       // either first run or had been decrementing.  either way, haven't found limit yet.
-      lastSumSim = sumSimilarity;
-      sumSimilarity = sumSimilarity - sumSimInc;
+      lastNumImages = numImages;
+      numImages--;
+      sumSimilarity = FindSumSimilarity( sumSimFilename, numImages );
     }
     // Last = T && This = T
     if( last_trial_scalable && this_trial_scalable )
     {
       // had to be incrementing. haven't found limit yet.
-      lastSumSim = sumSimilarity;
-      sumSimilarity = sumSimilarity + sumSimInc;
+      lastNumImages = numImages;
+      numImages++;
+      sumSimilarity = FindSumSimilarity( sumSimFilename, numImages );
     }
     // Last = F && This = T
     if( !last_trial_scalable && this_trial_scalable ) // first time run?
@@ -838,20 +847,23 @@ bool UpdateSumSimilarity( bool last_trial_scalable, bool this_trial_scalable, do
       if( !first_run )
       {
         // not first time run. had to be decrementing - found limit
-        lastSumSim = sumSimilarity;
+        lastNumImages = numImages;
+        sumSimilarity = FindSumSimilarity( sumSimFilename, numImages );
         found_limit = true;
       }
       else
       {
         // first time run. don't know anything yet. need to increment and test again.
-        lastSumSim = sumSimilarity;
-        sumSimilarity = sumSimilarity + sumSimInc;
+        lastNumImages = numImages;
+        numImages++;
+        sumSimilarity = FindSumSimilarity( sumSimFilename, numImages );
       }
     }
     
-    if( lastSumSim == minSumSim && !this_trial_scalable && first_run ) 
+    if( lastNumImages <= minNumImages && !this_trial_scalable ) 
     {
-      lastSumSim = 0;
+      lastNumImages = 0;
+      sumSimilarity = 0;
       found_limit = true;
     }
 
@@ -946,6 +958,7 @@ int FindNumImages( std::string SumSimFilename, double sum_similarity )
    
       if( sum_sim >= sum_similarity )
       {
+        sumsim_fd.close();
         return num_images;
       }
     }
@@ -955,8 +968,52 @@ int FindNumImages( std::string SumSimFilename, double sum_similarity )
     }
   }
 
+  sumsim_fd.close();
   return -1;
 
+}
+
+double FindSumSimilarity( std::string SumSimFilename, int numImages )
+{
+  char buf[1024];
+
+  std::ifstream sumsim_fd;
+  sprintf(buf, "%s.csv", SumSimFilename.c_str());
+  sumsim_fd.open( buf, std::ifstream::in );
+  if( !sumsim_fd.is_open() )
+  {
+    std::cout << "Error opening sum similarity requirements file: " << buf << "...returning -1\n";
+    return -1;
+  }
+  else
+  {
+    bool found_requ = false;
+    double sum_sim;
+    int num_images;
+    while( sumsim_fd.good() )
+    {
+      sumsim_fd.getline( buf, 32, ',' );  
+      char *pEnd;
+      sum_sim = strtod(buf,&pEnd);
+      sumsim_fd.getline( buf, 32, '\n' );  
+      num_images = (int)strtod(buf,&pEnd);
+
+//      std::cout<<"Looking for " << numImages <<": sumsim = " << sum_sim <<", num_images = " << num_images << "\n";
+
+      if( num_images == numImages )
+      {
+        sumsim_fd.close();
+        return sum_sim;
+      }
+    }
+    if( !found_requ )
+    {
+      std::cout << "Error: didn't find valid sum similarity given number of images in file...returning -1\n";
+    }
+  }
+
+  sumsim_fd.close();
+  return -1;
 }
 
 int FindInitialGuess( std::string InitialGuessFilename, double sum_similarity, double timeliness )

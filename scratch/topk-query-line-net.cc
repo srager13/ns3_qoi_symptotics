@@ -40,7 +40,10 @@
 #include "ns3/dsdv-helper.h"
 #include "ns3/applications-module.h"
 #include "ns3/tdma-helper.h"
+#include "ns3/yans-wifi-helper.h"
 #include "ns3/flow-monitor-helper.h"
+#include "ns3/constant-rate-wifi-manager.h"
+#include "ns3/wifi-helper.h"
 
 #include <iostream>
 #include <fstream>
@@ -63,11 +66,12 @@ int FindInitialGuess( std::string InitialGuessFilename, double sum_similarity, d
 int main (int argc, char *argv[])
 {
 	double runTime = 100;
-  double distance = 250;  // m
+  double distance = 50;  // m
   uint32_t numNodes = 25;  // by default, 5x5
   uint32_t lastNumNodes = 0;
-  uint32_t nodeInc = 1;
+  uint32_t nodeInc = 5;
   uint32_t minNumNodes = 3;
+  uint8_t contentionFactor = 3;
   double sumSimilarity = 0.6;
   double timeliness = 5.0;
   bool tracing = false;
@@ -90,6 +94,7 @@ int main (int argc, char *argv[])
   double q_comp_thresh = 0.9;
   bool satAllQueries = false;
   bool runOnceDebug = false;
+  bool useWifi = false;
 
   CommandLine cmd;
 
@@ -117,6 +122,7 @@ int main (int argc, char *argv[])
   cmd.AddValue ("destNode", "Destination node for one flow test.", destNode);
   cmd.AddValue ("satAllQueries", "Set true to set scalability defined by all nodes satisfying queries, not average.", satAllQueries);
   cmd.AddValue ("runOnceDebug", "Set true to only run one time for debug purposes...will not find scalability limit.", runOnceDebug);
+  cmd.AddValue ("useWifi", "Use Wifi instead of TDMA.", useWifi);
 
   cmd.Parse (argc, argv);
 
@@ -150,7 +156,8 @@ int main (int argc, char *argv[])
 
   while( !found_limit )
   {
-    std::cout<<"Testing " << numNodes <<", source node = " << sourceNode <<", dest node = " << destNode << "\n";
+    if( oneFlow )
+      std::cout<<"Testing " << numNodes <<", source node = " << sourceNode <<", dest node = " << destNode << "\n";
     // clear stats file
     sprintf(buf, "%s/TopkQueryClientStats.csv", dataFilePath.c_str());
     std::ofstream stats_file;
@@ -162,32 +169,93 @@ int main (int argc, char *argv[])
     NodeContainer c;
     c.Create (numNodes);
 
-    Config::SetDefault ("ns3::SimpleWirelessChannel::MaxRange", DoubleValue (distance+5));
-    // default allocation, each node gets a slot to transmit
-    /* can make custom allocation through simulation script
-     * will override default allocation
-     */
-    /*tdma.SetSlots(4,
-        0,1,1,0,0,
-        1,0,0,0,0,
-        2,0,0,1,0,
-        3,0,0,0,1);*/
-    // if TDMA slot assignment is through a file
-    sprintf(buf, "./tdmaSlotAssignFiles/tdmaSlots_lineNet_%i.csv", numNodes);
-    TdmaHelper tdma = TdmaHelper (buf);
-  //    TdmaHelper tdma =  = TdmaHelper (c.GetN (), c.GetN ()); // in this case selected, numSlots = nodes
+    NetDeviceContainer devices;
+    if( useWifi )
+    {
+      Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode", StringValue ("DsssRate2Mbps"));
+      Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("2200"));
+      // disable fragmentation for frames below 2200 bytes
+      Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
 
-    TdmaControllerHelper controller;
-    sprintf(buf, "%ib/s", (int)channelRate*1000000);
-    std::cout<<"Channel rate = " << buf << "\n";
-    controller.Set ("DataRate", DataRateValue (DataRate(buf))); // Mbps
-    double slot_time = ((packetSizeBytes)*8.0)/(channelRate*1000000);
-    std::cout<<"Slot time = " << slot_time << "\n";
-    controller.Set("SlotTime", TimeValue(Seconds(slot_time))); // time to transmit one 1400 byte packet at 2Mbps is 5600 uSec
-    controller.Set ("GaurdTime", TimeValue (MicroSeconds (0)));
-    controller.Set ("InterFrameTime", TimeValue (MicroSeconds (0)));
-    tdma.SetTdmaControllerHelper (controller);
-    NetDeviceContainer devices = tdma.Install (c);
+      WifiHelper wifi = WifiHelper::Default();
+      wifi.SetStandard(WIFI_PHY_STANDARD_80211b);
+
+      NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default();
+      YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default();
+      YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default();
+
+      wifiMac.SetType("ns3::AdhocWifiMac");
+      wifiPhy.SetChannel(wifiChannel.Create());
+      wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode", StringValue("DsssRate2Mbps"), "ControlMode", StringValue("DsssRate2Mbps"));
+      
+      //wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode", StringValue("DsssRate2Mbps"));
+      //wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode", StringValue("DsssRate2Mbps"), "RtsCtsThreshold", UintegerValue(100000));
+      //wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "ControlMode", StringValue("DsssRate2Mbps"), "RtsCtsThreshold", UintegerValue(100000));
+      devices = wifi.Install(wifiPhy, wifiMac, c);
+
+      sprintf(buf, "%ib/s", (int)channelRate*1000000);
+      std::cout<<"Channel rate = " << buf << "\n";
+      double delay_time = ((packetSizeBytes)*8.0)/(channelRate*1000000);
+      std::cout<<"Delay time = " << delay_time << "\n";
+
+      //csma.SetChannelAttribute("DataRate", DataRateValue (DataRate(buf))); // Mbps
+      //csma.SetChannelAttribute("Delay", TimeValue(Seconds(delay_time))); // time to transmit one 1400 byte packet at 2Mbps is 5600 uSec
+
+      //devices = csma.Install(c); 
+
+      if (tracing == true)
+      {
+        AsciiTraceHelper ascii;
+        std::ostringstream oss;
+        oss << "topk-query_" << numNodes << "_Nodes_wifi.tr";
+        std::string tr_name = oss.str();
+   
+        Ptr<OutputStreamWrapper> stream = ascii.CreateFileStream (tr_name);
+        wifiPhy.EnableAsciiAll(stream);
+        //wifiPhy.EnablePcap ("topk-query", devices);
+      }
+    }
+    else
+    {
+      // default allocation, each node gets a slot to transmit
+      /* can make custom allocation through simulation script
+       * will override default allocation
+       */
+      /*tdma.SetSlots(4,
+          0,1,1,0,0,
+          1,0,0,0,0,
+          2,0,0,1,0,
+          3,0,0,0,1);*/
+      // if TDMA slot assignment is through a file
+      sprintf(buf, "./tdmaSlotAssignFiles/tdmaSlots_lineNet_%i.csv", numNodes);
+    //    TdmaHelper tdma =  = TdmaHelper (c.GetN (), c.GetN ()); // in this case selected, numSlots = nodes
+      TdmaHelper tdma = TdmaHelper (buf);
+      Config::SetDefault ("ns3::SimpleWirelessChannel::MaxRange", DoubleValue (distance+5));
+
+      TdmaControllerHelper controller;
+      sprintf(buf, "%ib/s", (int)channelRate*1000000);
+      std::cout<<"Channel rate = " << buf << "\n";
+      controller.Set ("DataRate", DataRateValue (DataRate(buf))); // Mbps
+      double slot_time = ((packetSizeBytes)*8.0)/(channelRate*1000000);
+      std::cout<<"Slot time = " << slot_time << "\n";
+      controller.Set("SlotTime", TimeValue(Seconds(slot_time))); // time to transmit one 1400 byte packet at 2Mbps is 5600 uSec
+      controller.Set ("GaurdTime", TimeValue (MicroSeconds (0)));
+      controller.Set ("InterFrameTime", TimeValue (MicroSeconds (0)));
+      tdma.SetTdmaControllerHelper (controller);
+      devices = tdma.Install (c);
+
+
+      if (tracing == true)
+      {
+        AsciiTraceHelper ascii;
+        std::ostringstream oss;
+        oss << "topk-query_" << numNodes << "_Nodes_tdma.tr";
+        std::string tr_name = oss.str();
+   
+        Ptr<OutputStreamWrapper> stream = ascii.CreateFileStream (tr_name);
+        tdma.EnableAsciiAll (stream);
+      }
+    }
 
 
     // Set node positions (no mobility)
@@ -446,23 +514,11 @@ int main (int argc, char *argv[])
     // The ifIndex we want on node B is 2; 0 corresponds to loopback, and 1 to the first point to point link
     //staticRoutingB->AddHostRouteTo (Ipv4Address ("192.168.1.1"), Ipv4Address ("10.1.1.6"), 2);
 
-    if (tracing == true)
-      {
-        AsciiTraceHelper ascii;
-        std::ostringstream oss;
-        oss << "topk-query_" << numNodes << "_Nodes.tr";
-        std::string tr_name = oss.str();
-   
-        Ptr<OutputStreamWrapper> stream = ascii.CreateFileStream (tr_name);
-        tdma.EnableAsciiAll (stream);
-
-        //wifiPhy.EnablePcap ("topk-query", devices);
         // Trace routing tables
         //Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("topk-query.routes", std::ios::out);
         //olsr.PrintRoutingTableAllEvery (Seconds (2), routingStream);
 
         // To do-- enable an IP-level trace that shows forwarding events only
-      }
 
     if( runTime < 100.0 )
     {
@@ -479,6 +535,7 @@ int main (int argc, char *argv[])
     server.SetAttribute("ImageSizeKBytes", UintegerValue(imageSizeKBytes));
     server.SetAttribute("PacketSizeBytes", UintegerValue(packetSizeBytes-50));
     server.SetAttribute("NumNodes", UintegerValue(numNodes));
+    server.SetAttribute("ContentionFactor", UintegerValue(contentionFactor));
     server.SetAttribute("DelayPadding", DoubleValue(delayPadding));
     server.SetAttribute("ChannelRate", DoubleValue(channelRate));
     server.SetAttribute ("Timeliness", TimeValue (Seconds(timeliness)));
@@ -610,6 +667,8 @@ int main (int argc, char *argv[])
     sprintf(buf, "%s/Scalability_oneFlow.csv", dataFilePath_2.c_str());
   else if( satAllQueries )
     sprintf(buf, "%s/Scalability_satAllQueries.csv", dataFilePath_2.c_str());
+  else if( useWifi )
+    sprintf(buf, "%s/Scalability_wifi.csv", dataFilePath_2.c_str());
   else
     sprintf(buf, "%s/Scalability.csv", dataFilePath_2.c_str());
   std::ofstream scal_file;
